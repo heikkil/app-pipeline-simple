@@ -1,0 +1,31 @@
+<pipeline>
+  <name>String Manipulation</name>
+  <version>0.1</version>
+  <desciption>Example of a pipeline
+    Same as running:
+       echo 'abcd' | wc -c | cat -n | wc -c
+    so that every intermediate stage is stored in a file
+  </desciption>
+  <tool id="s1" name="echo">
+    <arg key='in' type='str'/>
+    <arg key='out' value="s1.txt" type='redir'/>
+    <next id="s2"/>
+    <next id="s3"/>
+  </tool>
+  <tool id="s2" name="wc">
+    <arg key='-c' />
+    <arg key='in' value="s1.txt" type='redir'/>
+    <arg key='out' value="s1.count" type='redir'/>
+  </tool>
+  <tool id="s3" name="cat">
+    <arg key='-n' />
+    <arg key='in' value="s1.txt" type='redir'/>
+    <arg key='out' value="s1_mod.txt" type='redir'/>
+    <next id="s4"/>
+  </tool>
+  <tool id="s4" name="wc">
+    <arg key='-c' />
+    <arg key='in' value="s1_mod.txt" type='redir'/>
+    <arg key='out' value="s1.count" type='redir'/>
+  </tool>
+</pipeline>
