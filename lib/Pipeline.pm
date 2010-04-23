@@ -15,6 +15,8 @@ use Carp;
 use File::Basename;
 use XML::Simple;
 use Data::Dumper;
+
+
 =pod
 
  sceleton
@@ -38,9 +40,6 @@ our $VERSION = '0.1';
          name           => 1,
 	 args           => 1,
 	 next_id        => 1,
-
-	 input_name     => 1,
-	 input_format   => 1,
 
 	 config         => 1,
 	 add            => 1,
@@ -128,6 +127,12 @@ sub config {
     if ($config) {
 	$self->{config} = XMLin($config, KeyAttr => {tool => 'id'});
 
+	# set pipeline start parameters
+	$self->id('s0');
+	$self->name($self->{config}->{name} || '');
+	$self->description($self->{config}->{description} || '');
+
+
 	# go through all steps once
 	my $nexts;		# hashref for finding start point(s)
 	for my $id (sort keys %{$self->{config}->{tool}}) {
@@ -153,10 +158,12 @@ sub config {
 	    } 	
 	}
 #	print Dumper $nexts;
+	# store starting points
 	foreach my $step ($self->each_step) {
 	    push @{$self->{next}}, { id => $step->id}
 	       unless $nexts->{$step->id}
 	}
+#	print Dumper $nexts, $self->{next} ; 
 
     }
     return  $self->{config};
@@ -180,11 +187,16 @@ sub dir {
 #
 #-----------------------------------------------------------------
 sub step ($$) {
-    shift->step(shift);
+    my ($self) = shift;
+    my $id = shift;
+    return $self->{config}->{tool}->{$id};
+#    print Dumper $id;
+#    print Dumper $self->step(shift); 
+    #shift->step(shift);
 }
 
 sub each_next ($) {
-    @{shift->{next}};
+    map { $_->{id} } grep { $_->{id} } @{shift->{next}};
 }
 
 sub each_step ($) {
@@ -196,7 +208,7 @@ sub next_step {
 
     # check for the log here to restart execution half way through
 
-    # at this stage, only one start step
+    # at this stage, only one starting step
     # find the first one: not referenced by any other steps in the pipeline
 
     for my $id (sort keys %{$self->{config}->{tool}}) {
@@ -207,25 +219,18 @@ sub next_step {
 sub run {
     my ($self) = @_;
 
-    croak "Need an output directory" unless $self->{dir};
+    croak "Need an output directory" unless $self->dir;
 
+    chdir $self->{dir};
+    my @steps = $self->each_next;
+    while (my $step_id = shift @steps) {
 
-    while ( my $step = $self->next_step) {
-
-    }
-
-    #map {print "$_\n"} sort keys %{$self->{config}->{tool}};
-
-    for my $id (sort keys %{$self->{config}->{tool}}) {
-	print "$id\t";
-	#    say "  ", Dumper $self->{config}->{tool}->{$id};
-	print $self->config->{tool}->{$id}->{name};
-	foreach my $arg (@{$self->{config}->{tool}->{$id}->{arg}}) {
-	    #print Dumper $arg;
-	    print " ", $arg->{key}, "=", ($arg->{value} || ''); 
-	}
-#	print "\n\t--> ",  $self->{config}->{tool}->{$id}->{next}->{id} || '', "\n" if defined $self->{config}->{tool}->{$id}->{next};
-	print "\n";
+	my $step = $self->step($step_id);
+	print $step->id, ":", $step->render, "\n";
+#	print Dumper $step;exit;	exit;
+	push @steps, $step->each_next;
+	my $command = $step->render;
+	`$command`;
     }
 }
 
@@ -237,11 +242,12 @@ sub run {
 sub render {
     my ($self, $tool) = @_;
 
+    $tool ||= $self;
 #    print "\n"; print Dumper $tool; print "\n";
 
     my $str;
     $str .=  $tool->{name};
-    my $endstr;
+    my $endstr = '';
     foreach my $arg (@{$tool->{arg}}) {
 
 	if (defined $arg->{type} and $arg->{type} eq 'str') {
@@ -278,15 +284,28 @@ sub stringify {
     print "-" x 50, "\n";
     foreach my $step ($self->each_step) {
 	print $step->id, "\t", $self->render($step), " # ";
-	map { print "-->", $_->{id}, " " }
-	    grep { $_->{id} }
-	    $step->each_next;
-
+	map { print "->", $_, " " } $step->each_next;
 	print "\n";
     }
     print "-" x 50, "\n";
 }
 
+sub graphviz {
+    my $self = shift;
+    my $function = shift;
+
+    require GraphViz;
+    my $g= GraphViz->new;
+
+    $g->add_node($self->id, label => $self->id. " : ". $self->render );
+    map {  $g->add_edge('s0' => $_) }  $self->each_next;
+    foreach my $step ($self->each_step) {
+	$g->add_node($step->id, label => $step->id. " : ". $step->name );
+	map {  $g->add_edge($step->id => $_, label => $step->render) }  $step->each_next;
+    }
+    return $g->as_dot;
+
+}
 
 1;
 __END__

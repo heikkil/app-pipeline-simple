@@ -25,15 +25,14 @@ ok $s2->name() eq 'test', 'name()';
 ok $s2->description('test'), 'description()';
 ok $s2->next_id('test'), 'next_id()';
 ok $s2->config(test_input_file('string_manipulation.xml')), 'config()';
-ok $s2->input_name('test'), 'input_name()';
-ok $s2->input_format('test'), 'input_format()';
+#ok $s2->input_name('test'), 'input_name()';
+#ok $s2->input_format('test'), 'input_format()';
 #ok $s2->run('test'), 'run()';
 
 #ok $s2->dir('data'), 'dir()';
 #$s2->('test'), '()';
 
-my @methods = qw(id name description input_name   
-		 input_format next_id config add
+my @methods = qw(id name description  next_id config add
 		 run
 	       );
 can_ok 'Pipeline', @methods;
@@ -45,7 +44,7 @@ $pl->stringify;
 $pl->each_step;
 #$pl->run;
 #print Dumper $pl;
-
+print $pl->graphviz;
 
 
 
