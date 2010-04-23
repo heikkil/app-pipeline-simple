@@ -1,6 +1,7 @@
 use Test::More tests => 14;
 use Data::Dumper;
 use File::Spec;
+
 BEGIN {
       use_ok( 'Pipeline' );
 }

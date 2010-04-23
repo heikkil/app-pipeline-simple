@@ -32,10 +32,15 @@ use Carp;
 use constant PROGRAMME_NAME => 'pipeline.pl';
 use constant VERSION => '0.1';
 
+# catch interuptions cleanly
+#$SIG{'INT'} = 'CLEANUP';
+#sub CLEANUP { exit(1) }
+
 
 our $DEBUG = '';
 our $CONFIG = '';
 our $DIR = '.';
+our $GRAPHVIZ;
 
 GetOptions(
            'v|version'     => sub{ print PROGRAMME_NAME, ", version ", VERSION, "\n";
@@ -43,6 +48,7 @@ GetOptions(
            'g|debug'       => \$DEBUG,
            'c|config:s'    => \$CONFIG,
            'd|directory:s' => \$DIR,
+	   'graphviz'      => \$GRAPHVIZ,
            'h|help|?'      => sub{ exec('perldoc',$0); exit(0) },
            );
 
@@ -51,4 +57,15 @@ croak "Needed argument --config" unless $CONFIG;
 
 
 my $p = Pipeline->new(config=> $CONFIG, dir => $DIR);
+
+print $p->graphviz and exit if $GRAPHVIZ;
 $p->run;
+
+#use Data::Dumper;
+#print Dumper $p;
+
+END {
+
+    $p->log;
+
+}

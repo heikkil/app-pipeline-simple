@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------
 # Pipeline
-# Authors:Heikki Lehvasllaiho <heikki.lehvaslaiho@gmail.com>
+# Authors:Heikki Lehvaslaiho <heikki.lehvaslaiho@gmail.com>
 # For copyright and disclaimer see Pipeline pod.
 #
 # Lghtweight workflow manager
@@ -31,6 +31,8 @@ our $VERSION = '0.1';
 #-----------------------------------------------------------------
 # A list of allowed options/arguments (used in the new() method)
 #-----------------------------------------------------------------
+
+
 {
     my %_allowed =
 	(
@@ -90,8 +92,7 @@ sub AUTOLOAD {
 #-----------------------------------------------------------------
 # Keep it here! The reason is the existence of AUTOLOAD...
 #-----------------------------------------------------------------
-sub DESTROY {
-}
+sub DESTROY { }
 
 #-----------------------------------------------------------------
 # new
@@ -106,14 +107,16 @@ sub new {
     $self->{compiled_operations} = {};
 
     # set all @args into this object with 'set' values
-    my (%args) =
- (@args == 1 ? (value => $args[0]) : @args);
+    my (%args) = (@args == 1 ? (value => $args[0]) : @args);
     foreach my $key (keys %args) {
         no strict 'refs';
         $self->$key ($args {$key});
     }
 
-    $self->host ($ENV{'MRS_HOST'}) if $ENV{'MRS_HOST'};
+
+    #$self->host ($ENV{'MRS_HOST'}) if $ENV{'MRS_HOST'};
+
+    $self->{log};
 
     # done
     return $self;
@@ -172,6 +175,26 @@ sub config {
 #-----------------------------------------------------------------
 #
 #-----------------------------------------------------------------
+
+sub log {
+    my ($self) = shift; 
+
+    croak "Need an output directory" unless $self->dir;
+
+    my $CONFIGFILE = $self->dir. '/config.xml';
+    my $LOGFILE = $self->dir. '/log.xml';
+
+    open my $CONF, '>', $CONFIGFILE;
+    print $CONF XMLout($self->{config});
+
+    open my $LOG, '>', $LOGFILE;
+    print $LOG XMLout($self->{log});
+
+}
+
+#-----------------------------------------------------------------
+#
+#-----------------------------------------------------------------
 sub dir {
     my ($self, $dir) = @_;
     if ($dir) {
@@ -216,6 +239,13 @@ sub next_step {
     }    
 }
 
+sub time {
+    my ($self) = @_;
+    my $date = `date`;
+    chomp $date;
+    return $date;
+}
+
 sub run {
     my ($self) = @_;
 
@@ -224,13 +254,15 @@ sub run {
     chdir $self->{dir};
     my @steps = $self->each_next;
     while (my $step_id = shift @steps) {
-
+	$self->{log}->{$step_id}->{start_time} = $self->time;
 	my $step = $self->step($step_id);
 	print $step->id, ":", $step->render, "\n";
 #	print Dumper $step;exit;	exit;
+	$self->{log}->{$step_id}->{action} = $step->render;
 	push @steps, $step->each_next;
 	my $command = $step->render;
 	`$command`;
+	$self->{log}->{$step_id}->{end_time} = $self->time;
     }
 }
 
@@ -289,6 +321,12 @@ sub stringify {
     }
     print "-" x 50, "\n";
 }
+=head2 
+
+pipeline.pl  -config pipelines/string_manipulation.xml -d -graph /tmp/ss > /tmp/p.dot; dot -Tpng /tmp/p.dot| display
+
+
+=cut
 
 sub graphviz {
     my $self = shift;
