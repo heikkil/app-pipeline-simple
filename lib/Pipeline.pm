@@ -34,21 +34,20 @@ our $VERSION = '0.1';
 	(
 
          id             => 1,
-         name           => 1,
          description    => 1,
+         name           => 1,
+	 args           => 1,
+	 next_id        => 1,
 
 	 input_name     => 1,
 	 input_format   => 1,
-
-	 code           => 1,
-	 next_id        => 1,
 
 	 config         => 1,
 	 add            => 1,
 
 	 dir            => 1,
 	 run            => 1,
-	 stringify       => 1,
+	 stringify      => 1,
 	 );
 
     sub _accessible {
@@ -108,7 +107,8 @@ sub new {
     $self->{compiled_operations} = {};
 
     # set all @args into this object with 'set' values
-    my (%args) = (@args == 1 ? (value => $args[0]) : @args);
+    my (%args) =
+ (@args == 1 ? (value => $args[0]) : @args);
     foreach my $key (keys %args) {
         no strict 'refs';
         $self->$key ($args {$key});
@@ -127,6 +127,37 @@ sub config {
     my ($self, $config) = @_;
     if ($config) {
 	$self->{config} = XMLin($config, KeyAttr => {tool => 'id'});
+
+	# go through all steps once
+	my $nexts;		# hashref for finding start point(s)
+	for my $id (sort keys %{$self->{config}->{tool}}) {
+	    my $step = $self->{config}->{tool}->{$id};
+
+	    # bless all steps into Pipepeline objects
+	    bless $step, ref($self);
+
+	    # create the list of all steps to be used by each_step()
+	    $step->id($id);
+	    push @{$self->{steps}}, $step;
+
+	    #turn a next hashref into an arrayref, (XML::Simple complication)
+	    unless ( ref($step->{next}) eq 'ARRAY' ) {
+		my $next = $step->{next};
+		delete $step->{next};
+		push @{$step->{next}}, $next;
+	    }
+
+	    # a step without a parent is a starting point
+	    foreach my $next (@{$step->{next}}) {
+		$nexts->{$next->{id}}++ if $next->{id}; 
+	    } 	
+	}
+#	print Dumper $nexts;
+	foreach my $step ($self->each_step) {
+	    push @{$self->{next}}, { id => $step->id}
+	       unless $nexts->{$step->id}
+	}
+
     }
     return  $self->{config};
 }
@@ -148,10 +179,40 @@ sub dir {
 #-----------------------------------------------------------------
 #
 #-----------------------------------------------------------------
+sub step ($$) {
+    shift->step(shift);
+}
+
+sub each_next ($) {
+    @{shift->{next}};
+}
+
+sub each_step ($) {
+    @{shift->{steps}};
+}
+
+sub next_step {
+    my ($self) = @_;
+
+    # check for the log here to restart execution half way through
+
+    # at this stage, only one start step
+    # find the first one: not referenced by any other steps in the pipeline
+
+    for my $id (sort keys %{$self->{config}->{tool}}) {
+	
+    }    
+}
+
 sub run {
     my ($self) = @_;
 
     croak "Need an output directory" unless $self->{dir};
+
+
+    while ( my $step = $self->next_step) {
+
+    }
 
     #map {print "$_\n"} sort keys %{$self->{config}->{tool}};
 
@@ -184,7 +245,7 @@ sub render {
     foreach my $arg (@{$tool->{arg}}) {
 
 	if (defined $arg->{type} and $arg->{type} eq 'str') {
-	    $str .= " ". '$inputstring';
+	    $str .= ' "'. $arg->{value}. '"';
 	    next;
 	}
 
@@ -213,23 +274,17 @@ sub render {
 
 sub stringify {
     my ($self) = shift;
+
     print "-" x 50, "\n";
-    for my $id (sort keys %{$self->{config}->{tool}}) {
-	my $toolstring = $self->render($self->config->{tool}->{$id});
-	print "$id\t$toolstring\n";
+    foreach my $step ($self->each_step) {
+	print $step->id, "\t", $self->render($step), " # ";
+	map { print "-->", $_->{id}, " " }
+	    grep { $_->{id} }
+	    $step->each_next;
 
-
-	if (defined $self->{config}->{tool}->{$id}->{next}) {
-	    if (ref($self->{config}->{tool}->{$id}->{next}) eq 'ARRAY') {
-		for my $next (@{$self->{config}->{tool}->{$id}->{next}}) {
-		    print "  --> ", $next->{id}, "\n";
-		}
-	    } else {
-		print "  --> ", $self->{config}->{tool}->{$id}->{next}->{id}, "\n";
-	    }
-	}
-	print "-" x 50, "\n";
+	print "\n";
     }
+    print "-" x 50, "\n";
 }
 
 

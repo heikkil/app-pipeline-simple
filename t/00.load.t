@@ -27,14 +27,13 @@ ok $s2->next_id('test'), 'next_id()';
 ok $s2->config(test_input_file('string_manipulation.xml')), 'config()';
 ok $s2->input_name('test'), 'input_name()';
 ok $s2->input_format('test'), 'input_format()';
-ok $s2->code('test'), 'code()';
 #ok $s2->run('test'), 'run()';
 
 #ok $s2->dir('data'), 'dir()';
 #$s2->('test'), '()';
 
 my @methods = qw(id name description input_name   
-		 input_format code next_id config add
+		 input_format next_id config add
 		 run
 	       );
 can_ok 'Pipeline', @methods;
@@ -43,7 +42,8 @@ can_ok 'Pipeline', @methods;
 my $pl = Pipeline->new(config=>test_input_file('string_manipulation.xml'));
 $pl->dir('/tmp/pl');
 $pl->stringify;
-
+$pl->each_step;
+#$pl->run;
 #print Dumper $pl;
 
 

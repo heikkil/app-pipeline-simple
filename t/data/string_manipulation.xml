@@ -7,7 +7,7 @@
     so that every intermediate stage is stored in a file
   </desciption>
   <tool id="s1" name="echo">
-    <arg key='in' type='str'/>
+    <arg key='in' value="abcd" type='str'/>
     <arg key='out' value="s1.txt" type='redir'/>
     <next id="s2"/>
     <next id="s3"/>
