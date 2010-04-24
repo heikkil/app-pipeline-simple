@@ -33,8 +33,8 @@ use constant PROGRAMME_NAME => 'pipeline.pl';
 use constant VERSION => '0.1';
 
 # catch interuptions cleanly
-#$SIG{'INT'} = 'CLEANUP';
-#sub CLEANUP { exit(1) }
+$SIG{'INT'} = 'CLEANUP';
+sub CLEANUP { exit(1) }
 
 
 our $DEBUG = '';
@@ -59,13 +59,14 @@ croak "Needed argument --config" unless $CONFIG;
 my $p = Pipeline->new(config=> $CONFIG, dir => $DIR);
 
 print $p->graphviz and exit if $GRAPHVIZ;
-$p->run;
+$p->stringify and exit if $DEBUG;
+#$p->run;
 
 #use Data::Dumper;
 #print Dumper $p;
 
 END {
 
-    $p->log;
+    $p->log unless $GRAPHVIZ;
 
 }

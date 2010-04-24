@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------
 # Pipeline
-# Authors:Heikki Lehvaslaiho <heikki.lehvaslaiho@gmail.com>
+# Author: Heikki Lehvaslaiho <heikki.lehvaslaiho@gmail.com>
 # For copyright and disclaimer see Pipeline pod.
 #
 # Lghtweight workflow manager
@@ -34,7 +34,7 @@ our $VERSION = '0.1';
 
 
 {
-    my %_allowed =
+    my %allowed =
 	(
 
          id             => 1,
@@ -51,9 +51,9 @@ our $VERSION = '0.1';
 	 stringify      => 1,
 	 );
 
-    sub _accessible {
+    sub accessible {
 	my ($self, $attr) = @_;
-	exists $_allowed{$attr};
+	exists $allowed{$attr};
     }
 }
 
@@ -63,7 +63,7 @@ our $VERSION = '0.1';
 sub AUTOLOAD {
     my ($self, $value) = @_;
     my $ref_sub;
-    if ($AUTOLOAD =~ /.*::(\w+)/ && $self->_accessible ("$1")) {
+    if ($AUTOLOAD =~ /.*::(\w+)/ && $self->accessible ("$1")) { 
 
 	# get/set method
 	my $attr_name = "$1";
@@ -112,11 +112,6 @@ sub new {
         no strict 'refs';
         $self->$key ($args {$key});
     }
-
-
-    #$self->host ($ENV{'MRS_HOST'}) if $ENV{'MRS_HOST'};
-
-    $self->{log};
 
     # done
     return $self;
@@ -311,19 +306,44 @@ sub render {
 }
 
 sub stringify {
-    my ($self) = shift;
+    my ($self) = @_;
 
-    print "-" x 50, "\n";
-    foreach my $step ($self->each_step) {
-	print $step->id, "\t", $self->render($step), " # ";
+    my @steps = $self->each_next;
+    my $outputs; #hashref for storing input and output filenames 
+    while (my $step_id = shift @steps) {
+	my $step = $self->step($step_id);
+	print $step->id, "\n\t", $step->render, " # ";
 	map { print "->", $_, " " } $step->each_next;
+
+	push @steps, $step->each_next;
+
+#	print "\n"; print Dumper $outputs;
+	foreach my $arg (@{$step->{arg}}) {
+	    if ($arg->{key} eq 'out') {
+		for ($step->each_next) {
+		    print "\n\t", "WARNING: Output file [".$arg->{value}."] is read by [",
+		    $outputs->{$arg->{value}}, "] and [$_]" 
+		    if  $outputs->{$arg->{value}};
+
+		    $outputs->{$arg->{value}} = $_;
+		}
+	    }
+	    elsif ($arg->{key} eq 'in' and $arg->{type} ne 'redir') {
+		my $prev_step_id = $outputs->{$arg->{value}} || '';
+		print "\n\t", "ERROR: Output from the previous step is not [",
+		    $arg->{value} || '', "]" 
+		    if $prev_step_id ne $step->id;
+	    }
+	    # test for steps not refencesed by other steps (missing next tag)
+	}
 	print "\n";
     }
-    print "-" x 50, "\n";
+    #print "\n"; print Dumper $outputs;
 }
+
 =head2 
 
-pipeline.pl  -config pipelines/string_manipulation.xml -d -graph /tmp/ss > /tmp/p.dot; dot -Tpng /tmp/p.dot| display
+pipeline.pl  -config pipelines/string_manipulation.xml -graph  > /tmp/p.dot; dot -Tpng /tmp/p.dot| display
 
 
 =cut
