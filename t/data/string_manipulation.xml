@@ -15,17 +15,17 @@
   <tool id="s2" name="wc">
     <arg key='-c' />
     <arg key='in' value="s1.txt" type='redir'/>
-    <arg key='out' value="s1.count" type='redir'/>
+    <arg key='out' value="s2.count" type='redir'/>
   </tool>
   <tool id="s3" name="cat">
     <arg key='-n' />
     <arg key='in' value="s1.txt" type='redir'/>
-    <arg key='out' value="s1_mod.txt" type='redir'/>
+    <arg key='out' value="s3_mod.txt" type='redir'/>
     <next id="s4"/>
   </tool>
   <tool id="s4" name="wc">
     <arg key='-c' />
-    <arg key='in' value="s1_mod.txt" type='redir'/>
-    <arg key='out' value="s1.count" type='redir'/>
+    <arg key='in' value="s3_mod.txt" type='redir'/>
+    <arg key='out' value="s4.count" type='redir'/>
   </tool>
 </pipeline>

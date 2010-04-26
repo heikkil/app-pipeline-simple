@@ -41,6 +41,11 @@ our $DEBUG = '';
 our $CONFIG = '';
 our $DIR = '.';
 our $GRAPHVIZ;
+our $INPUT = '';
+our $ITYPE  =  '';
+our $CONTINUE;
+our $START  =  '';
+our $END  =  '';
 
 GetOptions(
            'v|version'     => sub{ print PROGRAMME_NAME, ", version ", VERSION, "\n";
@@ -48,25 +53,39 @@ GetOptions(
            'g|debug'       => \$DEBUG,
            'c|config:s'    => \$CONFIG,
            'd|directory:s' => \$DIR,
+           'i|input:s'     => \$INPUT,
+           'it|itype:s'    => \$ITYPE,
 	   'graphviz'      => \$GRAPHVIZ,
+	   'continue'      => \$CONTINUE,
+	   'start:s'       => \$START,
+	   'end:s'         => \$END,
            'h|help|?'      => sub{ exec('perldoc',$0); exit(0) },
            );
 
 
-croak "Needed argument --config" unless $CONFIG;
+#croak "Needed argument --config" unless $CONFIG;
+#croak "Needed arguments --input and --itype" unless $INPUT and $ITYPE;
 
+my %args;
+$args{config} = $CONFIG if $CONFIG;
+$args{dir} = $DIR;
+$args{input} = $INPUT if $INPUT;
+$args{itype} = $ITYPE if $ITYPE;
+#use Data::Dumper; print Dumper \%args; exit;
 
-my $p = Pipeline->new(config=> $CONFIG, dir => $DIR);
+my $p = Pipeline->new(%args);
 
 print $p->graphviz and exit if $GRAPHVIZ;
 $p->stringify and exit if $DEBUG;
-#$p->run;
+
+$p->run();
 
 #use Data::Dumper;
 #print Dumper $p;
 
 END {
 
-    $p->log unless $GRAPHVIZ;
+    exit if $GRAPHVIZ or $DEBUG;
+    $p->log;
 
 }

@@ -46,9 +46,15 @@ our $VERSION = '0.1';
 	 config         => 1,
 	 add            => 1,
 
+	 input          => 1,
+         itype          => 1,
 	 dir            => 1,
 	 run            => 1,
 	 stringify      => 1,
+
+	 continue       => 1,
+	 start          => 1,
+	 end            => 1,
 	 );
 
     sub accessible {
@@ -103,17 +109,24 @@ sub new {
     # create an object
     my $self = bless {}, ref ($class) || $class;
 
-    # set default values
-    $self->{compiled_operations} = {};
-
     # set all @args into this object with 'set' values
     my (%args) = (@args == 1 ? (value => $args[0]) : @args);
+
     foreach my $key (keys %args) {
+	next if $key eq 'config'; # this needs to be evaluated last
         no strict 'refs';
-        $self->$key ($args {$key});
+        $self->$key($args{$key});
     }
 
+    # this needs to be done last
+    $self->config($args{'config'}) if defined $args{'config'};
+
+
+    $self->config($self->dir. '/config.xml') if not $self->{config} and -e $self->dir. '/config.xml';
+    croak "ERROR: pipeline config file provided or found in cwd" if not $self->{config};
     # done
+
+    #print Dumper $self; exit;
     return $self;
 }
 
@@ -123,7 +136,8 @@ sub new {
 sub config {
     my ($self, $config) = @_;
     if ($config) {
-	$self->{config} = XMLin($config, KeyAttr => {tool => 'id'});
+	croak "ERROR: config file [$config] not found in [". $self->dir. "/$config" . "]" unless -e $self->dir. "/$config";
+	$self->{config} = XMLin($self->dir. "/$config", KeyAttr => {tool => 'id'});
 
 	# set pipeline start parameters
 	$self->id('s0');
@@ -139,11 +153,13 @@ sub config {
 	    # bless all steps into Pipepeline objects
 	    bless $step, ref($self);
 
+
+	    #print "ERROR: $id already exists\n" if defined $self->step($id); 
 	    # create the list of all steps to be used by each_step()
 	    $step->id($id);
 	    push @{$self->{steps}}, $step;
 
-	    #turn a next hashref into an arrayref, (XML::Simple complication)
+	    #turn a next hashref into an arrayref, (fixing XML::Simple complication)
 	    unless ( ref($step->{next}) eq 'ARRAY' ) {
 		my $next = $step->{next};
 		delete $step->{next};
@@ -161,8 +177,40 @@ sub config {
 	    push @{$self->{next}}, { id => $step->id}
 	       unless $nexts->{$step->id}
 	}
-#	print Dumper $nexts, $self->{next} ; 
 
+	#run needs to fail if starting input values are not set!
+
+	# insert the startup value into the appropriate starting step
+	# unless we are reading old config
+	if ($self->itype and $self->input) { # only if new starting input value has been given
+	    my $real_start_id;
+	    for my $step_id ( $self->each_next) {
+		my $step = $self->step($step_id);
+
+		# if input type is right, insert the value
+		# note only one of the each type can be used
+		foreach my $arg (@{$step->{arg}}) {
+		    #print Dumper $arg;
+		    next unless $arg->{key} eq 'in' and defined $arg->{type} and $arg->{type} eq $self->itype;
+		    #print Dumper $self->itype, $step->id, $arg;
+		    $arg->{value} = $self->input;
+		    #print Dumper $arg;
+		    $real_start_id = $step_id;
+		}
+	    }
+	    $self->{next} = undef;
+	    push @{$self->{next}}, { id => $real_start_id};
+	}
+
+#	print Dumper $self->{next};
+#	my @real_start_id = grep { $real_start_id eq $_->{id} } @{$self->each_next};
+#	my @real_start_id = @{$self->each_next};
+#	print Dumper $self->{next}, @real_start_id;
+#	$self->{next} = \@real_start_id  ;
+
+#	print Dumper $self->step('s1.2');
+	#print Dumper $self;
+	#exit;
     }
     return  $self->{config};
 }
@@ -246,12 +294,36 @@ sub run {
 
     croak "Need an output directory" unless $self->dir;
 
+    ###
+    # check for input file and warn if not  found
+
     chdir $self->{dir};
-    my @steps = $self->each_next;
+
+    # determine where the execution of the pipeline was interrupted
+    my @steps;
+    if (-e $self->dir. "/log.xml") {
+	$self->{log} = XMLin('log.xml', KeyAttr => {tool => 'id'});	
+	#print Dumper $self->{log}, "----------------------------------";
+	for my $step_id (keys %{$self->{log}}) {
+	    push @steps, $step_id if not defined $self->{log}->{$step_id}->{end_time};
+	}
+
+    } else { # or start from the beginning
+	@steps = $self->each_next;	
+    }
+#    print Dumper \@steps;
+#    exit;
     while (my $step_id = shift @steps) {
 	$self->{log}->{$step_id}->{start_time} = $self->time;
-	my $step = $self->step($step_id);
-	print $step->id, ":", $step->render, "\n";
+	my $step = $self->step($step_id);	
+	print $step->id, "\t", $step->render, "\n";
+
+	foreach my $arg (@{$step->{arg}}) {
+	    next unless $arg->{key} eq 'in';
+	    next unless $arg->{type} =~ /file|dir/ ;
+	    croak "Can not read input at [". $arg->{value}. "]" unless -e $arg->{value};
+	}
+
 #	print Dumper $step;exit;	exit;
 	$self->{log}->{$step_id}->{action} = $step->render;
 	push @steps, $step->each_next;
@@ -277,10 +349,10 @@ sub render {
     my $endstr = '';
     foreach my $arg (@{$tool->{arg}}) {
 
-	if (defined $arg->{type} and $arg->{type} eq 'str') {
-	    $str .= ' "'. $arg->{value}. '"';
-	    next;
-	}
+	#if (defined $arg->{type} and $arg->{type} eq 'str') {
+	#    $str .= ' "'. $arg->{value}. '"';
+	#    next;
+	#}
 
 	if (defined $arg->{type} and $arg->{type} eq 'redir') {
 	    if ($arg->{key} eq 'in') {
@@ -295,9 +367,9 @@ sub render {
 	}
 
 	if (defined $arg->{value}) {
-	    $str .= " ". $arg->{key}. "=". $arg->{value}; 
+	    $str .= " -". $arg->{key}. "=". $arg->{value}; 
 	} else {
-	    $str .= " ". $arg->{key};
+	    $str .= " -". $arg->{key};
 	}
 
     }
@@ -307,6 +379,8 @@ sub render {
 
 sub stringify {
     my ($self) = @_;
+
+    # add checks for duplicated ids
 
     my @steps = $self->each_next;
     my $outputs; #hashref for storing input and output filenames 
