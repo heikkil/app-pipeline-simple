@@ -78,7 +78,9 @@ my $p = Pipeline->new(%args);
 print $p->graphviz and exit if $GRAPHVIZ;
 $p->stringify and exit if $DEBUG;
 
-$p->run();
+
+
+$p->run() unless $DEBUG;
 
 #use Data::Dumper;
 #print Dumper $p;

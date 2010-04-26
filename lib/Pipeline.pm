@@ -123,7 +123,7 @@ sub new {
 
 
     $self->config($self->dir. '/config.xml') if not $self->{config} and -e $self->dir. '/config.xml';
-    croak "ERROR: pipeline config file provided or found in cwd" if not $self->{config};
+    croak "ERROR: pipeline config file not provided or not found in pwd" if not $self->{config};
     # done
 
     #print Dumper $self; exit;
@@ -349,10 +349,10 @@ sub render {
     my $endstr = '';
     foreach my $arg (@{$tool->{arg}}) {
 
-	#if (defined $arg->{type} and $arg->{type} eq 'str') {
-	#    $str .= ' "'. $arg->{value}. '"';
-	#    next;
-	#}
+	if (defined $arg->{type} and $arg->{type} eq 'unnamed') {
+	    $str .= ' "'. $arg->{value}. '"';
+	    next;
+	}
 
 	if (defined $arg->{type} and $arg->{type} eq 'redir') {
 	    if ($arg->{key} eq 'in') {
@@ -381,6 +381,8 @@ sub stringify {
     my ($self) = @_;
 
     # add checks for duplicated ids
+
+    # add checks for next pointers that lead nowhere
 
     my @steps = $self->each_next;
     my $outputs; #hashref for storing input and output filenames 
@@ -429,11 +431,19 @@ sub graphviz {
     require GraphViz;
     my $g= GraphViz->new;
 
+    my $end;
     $g->add_node($self->id, label => $self->id. " : ". $self->render );
     map {  $g->add_edge('s0' => $_) }  $self->each_next;
     foreach my $step ($self->each_step) {
 	$g->add_node($step->id, label => $step->id. " : ". $step->name );
-	map {  $g->add_edge($step->id => $_, label => $step->render) }  $step->each_next;
+	if ($step->each_next) {
+	    map {  $g->add_edge($step->id => $_, label => $step->render) }  $step->each_next;
+	} else {
+	    $end++;
+	    $g->add_node($end, label => ' ');
+	    $g->add_edge($step->id => $end, label => $step->render)
+	}
+
     }
     return $g->as_dot;
 
