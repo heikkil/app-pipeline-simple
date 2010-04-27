@@ -26,7 +26,7 @@ use Data::Dumper;
 #-----------------------------------------------------------------
 # Global variables (available for all packages in this file)
 #-----------------------------------------------------------------
-our $VERSION = '0.1';
+our $VERSION = '0.3';
 
 #-----------------------------------------------------------------
 # A list of allowed options/arguments (used in the new() method)
@@ -39,6 +39,7 @@ our $VERSION = '0.1';
 
          id             => 1,
          description    => 1,
+
          name           => 1,
 	 args           => 1,
 	 next_id        => 1,
@@ -54,7 +55,7 @@ our $VERSION = '0.1';
 
 	 continue       => 1,
 	 start          => 1,
-	 end            => 1,
+	 stop           => 1,
 	 );
 
     sub accessible {
@@ -121,12 +122,12 @@ sub new {
     # this needs to be done last
     $self->config($args{'config'}) if defined $args{'config'};
 
-
+    #print Dumper $self; exit;
     $self->config($self->dir. '/config.xml') if not $self->{config} and -e $self->dir. '/config.xml';
     croak "ERROR: pipeline config file not provided or not found in pwd" if not $self->{config};
     # done
 
-    #print Dumper $self; exit;
+
     return $self;
 }
 
@@ -136,8 +137,8 @@ sub new {
 sub config {
     my ($self, $config) = @_;
     if ($config) {
-	croak "ERROR: config file [$config] not found in [". $self->dir. "/$config" . "]" unless -e $self->dir. "/$config";
-	$self->{config} = XMLin($self->dir. "/$config", KeyAttr => {tool => 'id'});
+	croak "ERROR: config file [$config] not found in [". $self->dir. "/$config" . "] from [". `pwd`  unless -e "$config";
+	$self->{config} = XMLin($config, KeyAttr => {step => 'id'});
 
 	# set pipeline start parameters
 	$self->id('s0');
@@ -147,8 +148,8 @@ sub config {
 
 	# go through all steps once
 	my $nexts;		# hashref for finding start point(s)
-	for my $id (sort keys %{$self->{config}->{tool}}) {
-	    my $step = $self->{config}->{tool}->{$id};
+	for my $id (sort keys %{$self->{config}->{step}}) {
+	    my $step = $self->{config}->{step}->{$id};
 
 	    # bless all steps into Pipepeline objects
 	    bless $step, ref($self);
@@ -224,8 +225,8 @@ sub log {
 
     croak "Need an output directory" unless $self->dir;
 
-    my $CONFIGFILE = $self->dir. '/config.xml';
-    my $LOGFILE = $self->dir. '/log.xml';
+    my $CONFIGFILE = 'config.xml';
+    my $LOGFILE = 'log.xml';
 
     open my $CONF, '>', $CONFIGFILE;
     print $CONF XMLout($self->{config});
@@ -255,7 +256,7 @@ sub dir {
 sub step ($$) {
     my ($self) = shift;
     my $id = shift;
-    return $self->{config}->{tool}->{$id};
+    return $self->{config}->{step}->{$id};
 #    print Dumper $id;
 #    print Dumper $self->step(shift); 
     #shift->step(shift);
@@ -277,7 +278,7 @@ sub next_step {
     # at this stage, only one starting step
     # find the first one: not referenced by any other steps in the pipeline
 
-    for my $id (sort keys %{$self->{config}->{tool}}) {
+    for my $id (sort keys %{$self->{config}->{step}}) {
 	
     }    
 }
@@ -299,55 +300,81 @@ sub run {
 
     chdir $self->{dir};
 
+    # idea: launch separate process for each step using Parallel::Forkmanager
+
+    #
+    # Determine where in the pipeline to start
+    #
+
+    my @steps; # array of next execution points
+
+    # User has given a starting point id
+    if ($self->{start}) {
+	push @steps, $self->{start};
+    }
+
     # determine where the execution of the pipeline was interrupted
-    my @steps;
-    if (-e $self->dir. "/log.xml") {
-	$self->{log} = XMLin('log.xml', KeyAttr => {tool => 'id'});	
+    elsif (-e $self->dir. "/log.xml") {
+	$self->{log} = XMLin('log.xml', KeyAttr => {step => 'id'});	
 	#print Dumper $self->{log}, "----------------------------------";
 	for my $step_id (keys %{$self->{log}}) {
-	    push @steps, $step_id if not defined $self->{log}->{$step_id}->{end_time};
+	    push @steps, $step_id
+		if not defined $self->{log}->{$step_id}->{end_time};
 	}
-
-    } else { # or start from the beginning
-	@steps = $self->each_next;	
+    } else { 	# or start from the beginning
+	@steps = $self->each_next;
     }
-#    print Dumper \@steps;
-#    exit;
+#    print Dumper \@steps; exit;
+
+    #
+    # Execute one step at a time
+    #
     while (my $step_id = shift @steps) {
 	$self->{log}->{$step_id}->{start_time} = $self->time;
-	my $step = $self->step($step_id);	
+	my $step = $self->step($step_id);
+	croak "ERROR: Step [$step_id] does not exist" unless $step;
+	# check that we got an object
+
 	print $step->id, "\t", $step->render, "\n";
 
+	# check that the input file exists
 	foreach my $arg (@{$step->{arg}}) {
 	    next unless $arg->{key} eq 'in';
 	    next unless $arg->{type} =~ /file|dir/ ;
-	    croak "Can not read input at [". $arg->{value}. "]" unless -e $arg->{value};
+	    croak "Can not read input at [". $arg->{value}. "]"
+		unless -e $arg->{value};
 	}
 
-#	print Dumper $step;exit;	exit;
+#	print Dumper $step;exit;
 	$self->{log}->{$step_id}->{action} = $step->render;
-	push @steps, $step->each_next;
+
 	my $command = $step->render;
 	`$command`;
 	$self->{log}->{$step_id}->{end_time} = $self->time;
+
+	# Add next step(s) to the execution queue unless
+	# the user has asked to stop here
+	push @steps, $step->each_next 
+	    unless defined $self->{stop} and $step_id eq $self->{stop};
+
     }
 }
 
 
 #-----------------------------------------------------------------
-# Render a tool into a command line string
+# Render a step into a command line string
 #-----------------------------------------------------------------
 
 sub render {
-    my ($self, $tool) = @_;
+    my ($self, $step) = @_;
 
-    $tool ||= $self;
-#    print "\n"; print Dumper $tool; print "\n";
+    $step ||= $self;
+#    print "\n"; print Dumper $step; print "\n";
 
     my $str;
-    $str .=  $tool->{name};
+    $str .=  $step->{name};
     my $endstr = '';
-    foreach my $arg (@{$tool->{arg}}) {
+    foreach my $arg (@{$step->{arg}}) {
 
 	if (defined $arg->{type} and $arg->{type} eq 'unnamed') {
 	    $str .= ' "'. $arg->{value}. '"';
@@ -408,7 +435,7 @@ sub stringify {
 		my $prev_step_id = $outputs->{$arg->{value}} || '';
 		print "\n\t", "ERROR: Output from the previous step is not [",
 		    $arg->{value} || '', "]" 
-		    if $prev_step_id ne $step->id;
+		    if $prev_step_id ne $step->id and $prev_step_id eq $self->id;
 	    }
 	    # test for steps not refencesed by other steps (missing next tag)
 	}

@@ -30,7 +30,7 @@ use Getopt::Long;
 use Carp;
 
 use constant PROGRAMME_NAME => 'pipeline.pl';
-use constant VERSION => '0.1';
+use constant VERSION => '0.3';
 
 # catch interuptions cleanly
 $SIG{'INT'} = 'CLEANUP';
@@ -43,9 +43,9 @@ our $DIR = '.';
 our $GRAPHVIZ;
 our $INPUT = '';
 our $ITYPE  =  '';
-our $CONTINUE;
+#our $CONTINUE;
 our $START  =  '';
-our $END  =  '';
+our $STOP  =  '';
 
 GetOptions(
            'v|version'     => sub{ print PROGRAMME_NAME, ", version ", VERSION, "\n";
@@ -56,14 +56,13 @@ GetOptions(
            'i|input:s'     => \$INPUT,
            'it|itype:s'    => \$ITYPE,
 	   'graphviz'      => \$GRAPHVIZ,
-	   'continue'      => \$CONTINUE,
+#	   'continue'      => \$CONTINUE,
 	   'start:s'       => \$START,
-	   'end:s'         => \$END,
+	   'stop:s'        => \$STOP,
            'h|help|?'      => sub{ exec('perldoc',$0); exit(0) },
            );
 
 
-#croak "Needed argument --config" unless $CONFIG;
 #croak "Needed arguments --input and --itype" unless $INPUT and $ITYPE;
 
 my %args;
@@ -71,14 +70,14 @@ $args{config} = $CONFIG if $CONFIG;
 $args{dir} = $DIR;
 $args{input} = $INPUT if $INPUT;
 $args{itype} = $ITYPE if $ITYPE;
+$args{start} = $START if $START;
+$args{stop}  = $STOP  if $STOP;
 #use Data::Dumper; print Dumper \%args; exit;
 
 my $p = Pipeline->new(%args);
 
 print $p->graphviz and exit if $GRAPHVIZ;
 $p->stringify and exit if $DEBUG;
-
-
 
 $p->run() unless $DEBUG;
 
