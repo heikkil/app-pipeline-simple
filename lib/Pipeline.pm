@@ -21,12 +21,16 @@ use Data::Dumper;
 
  sceleton
 
+Tue Apr 27 15:48:29 AST 2010
+
+Similarity to http://gmod.org/wiki/DIYA !
+
 =cut
 
 #-----------------------------------------------------------------
 # Global variables (available for all packages in this file)
 #-----------------------------------------------------------------
-our $VERSION = '0.3';
+our $VERSION = '0.4';
 
 #-----------------------------------------------------------------
 # A list of allowed options/arguments (used in the new() method)
@@ -366,9 +370,9 @@ sub run {
 #-----------------------------------------------------------------
 
 sub render {
-    my ($self, $step) = @_;
+    my ($step, $display) = @_;
 
-    $step ||= $self;
+#    $step ||= $self;
 #    print "\n"; print Dumper $step; print "\n";
 
     my $str;
@@ -400,8 +404,11 @@ sub render {
 	}
 
     }
+    $str .= $endstr;
 
-    return $str. $endstr;
+    $str =~ s/(['"])/\\$1/g if $display;
+
+    return $str;
 }
 
 sub stringify {
@@ -409,13 +416,13 @@ sub stringify {
 
     # add checks for duplicated ids
 
-    # add checks for next pointers that lead nowhere
+    # add check for a next pointer that leads nowhere
 
     my @steps = $self->each_next;
     my $outputs; #hashref for storing input and output filenames 
     while (my $step_id = shift @steps) {
 	my $step = $self->step($step_id);
-	print $step->id, "\n\t", $step->render, " # ";
+	print $step->id, "\n\t", $step->render('4display'), " # ";
 	map { print "->", $_, " " } $step->each_next;
 
 	push @steps, $step->each_next;
@@ -459,16 +466,24 @@ sub graphviz {
     my $g= GraphViz->new;
 
     my $end;
-    $g->add_node($self->id, label => $self->id. " : ". $self->render );
+    $g->add_node($self->id,
+		 label => $self->id. " : ".
+		 $self->render('4display'), rank => 'top');
     map {  $g->add_edge('s0' => $_) }  $self->each_next;
+    if ($self->description) {
+	$g->add_node('desc', label => $self->description,
+		     shape => 'box', rank => 'top');
+	$g->add_edge('s0' => 'desc');
+    }
+
     foreach my $step ($self->each_step) {
 	$g->add_node($step->id, label => $step->id. " : ". $step->name );
 	if ($step->each_next) {
-	    map {  $g->add_edge($step->id => $_, label => $step->render) }  $step->each_next;
+	    map {  $g->add_edge($step->id => $_, label => $step->render('display') ) }  $step->each_next;
 	} else {
 	    $end++;
 	    $g->add_node($end, label => ' ');
-	    $g->add_edge($step->id => $end, label => $step->render)
+	    $g->add_edge($step->id => $end, label => $step->render('display') );
 	}
 
     }

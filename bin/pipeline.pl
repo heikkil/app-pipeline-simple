@@ -30,7 +30,10 @@ use Getopt::Long;
 use Carp;
 
 use constant PROGRAMME_NAME => 'pipeline.pl';
-use constant VERSION => '0.3';
+use constant VERSION => '0.4';
+
+# raising $OUTPUT_AUTOFLUSH flag to get immediate reporting
+$| = 1;
 
 # catch interuptions cleanly
 $SIG{'INT'} = 'CLEANUP';
@@ -46,6 +49,7 @@ our $ITYPE  =  '';
 #our $CONTINUE;
 our $START  =  '';
 our $STOP  =  '';
+our $ERROR;
 
 GetOptions(
            'v|version'     => sub{ print PROGRAMME_NAME, ", version ", VERSION, "\n";
@@ -74,6 +78,10 @@ $args{start} = $START if $START;
 $args{stop}  = $STOP  if $STOP;
 #use Data::Dumper; print Dumper \%args; exit;
 
+$ERROR = 1  and croak "ERROR: Need either explicit config file or ".
+    "it has to found the working directory\n"
+    unless -e 'config.xml' or $CONFIG;
+
 my $p = Pipeline->new(%args);
 
 print $p->graphviz and exit if $GRAPHVIZ;
@@ -86,7 +94,7 @@ $p->run() unless $DEBUG;
 
 END {
 
-    exit if $GRAPHVIZ or $DEBUG;
+    exit if $GRAPHVIZ or $DEBUG or $ERROR;
     $p->log;
 
 }
