@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------
-# Pipeline
+# Pipeline::Simple
 # Author: Heikki Lehvaslaiho <heikki.lehvaslaiho@gmail.com>
-# For copyright and disclaimer see Pipeline pod.
+# For copyright and disclaimer see Pipeline::Simple.pod.
 #
 # Lghtweight workflow manager
 
@@ -15,6 +15,7 @@ use Carp;
 use File::Basename;
 use XML::Simple;
 use Data::Dumper;
+#use Log::Log4perl;
 
 
 =pod
@@ -69,6 +70,21 @@ our $VERSION = '0.4';
 }
 
 #-----------------------------------------------------------------
+# Configure the logger
+#-----------------------------------------------------------------
+my $logger_config = q(
+    log4perl.category.Pipeline         = WARN, Logfile
+    log4perl.appender.Logfile          = Log::Log4perl::Appender::File
+    log4perl.appender.Logfile.filename = pipeline.log
+    log4perl.appender.Logfile.layout = \
+	Log::Log4perl::Layout::PatternLayout
+    log4perl.appender.Logfile.layout.ConversionPattern = %d (%L): [%p] %m %n
+        );
+
+
+
+
+#-----------------------------------------------------------------
 # Deal with 'set' and 'get' methods.
 #-----------------------------------------------------------------
 sub AUTOLOAD {
@@ -111,6 +127,10 @@ sub DESTROY { }
 sub new {
     my ($class, @args) = @_;
 
+    # start logging
+    #Log::Log4perl->init_once( \$logger_config );
+    #my $log = get_logger("Pipeline");
+
     # create an object
     my $self = bless {}, ref ($class) || $class;
 
@@ -122,6 +142,7 @@ sub new {
         no strict 'refs';
         $self->$key($args{$key});
     }
+    #$log->debug("Pipeline object id ". $self->id);
 
     # this needs to be done last
     $self->config($args{'config'}) if defined $args{'config'};

@@ -1,19 +1,15 @@
-Pipeline version 0.0.1
+Pipeline::Simple version 0.4
 
-[ REPLACE THIS...
+This module is a simple pipeline manager that can execute a (brancing)
+series of commands the are interdependent. It implements an equivalent
+of a unix pipeline where all intermediate steps are stored in files.
 
-  The README is used to introduce the module and provide instructions on
-  how to install the module, any machine dependencies it may have (for
-  example C compilers and installed libraries) and any other information
-  that should be understood before the module is installed.
-
-  A README file is required for CPAN modules since CPAN extracts the
-  README file from a module distribution so that people browsing the
-  archive can use it get an idea of the modules uses. It is usually a
-  good idea to provide version information here so that people can
-  decide whether fixes for the module are worth downloading.
-]
-
+A pipeline reads its instructions from a structured configuration
+file, builds internal representation of the execution graph, and
+starts the execution. The user interaction is done using a command
+line program that can give starting parameters to the pipeline. The
+execution can be stopped any time, a local copy of the instructions can
+be modified and the execution can resume at any point.
 
 INSTALLATION
 
@@ -34,8 +30,29 @@ Alternatively, to install with Module::Build, you can use the following commands
 
 DEPENDENCIES
 
-None.
+XML::Simple
+Log::Log4perl
 
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+    perldoc Pipeline::Simple
+
+You can also look for information at:
+
+    RT, CPAN's request tracker
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Pipeline-Simple
+
+    AnnoCPAN, Annotated CPAN documentation
+        http://annocpan.org/dist/Pipeline-Simple
+
+    CPAN Ratings
+        http://cpanratings.perl.org/d/Pipeline-Simple
+
+    Search CPAN
+        http://search.cpan.org/dist/Pipeline-Simple
 
 COPYRIGHT AND LICENCE
 
