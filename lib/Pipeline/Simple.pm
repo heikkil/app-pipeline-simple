@@ -9,6 +9,7 @@ package Pipeline;
 
 use strict;
 use warnings;
+use version;
 use vars qw( $AUTOLOAD );
 
 use Carp;
@@ -31,7 +32,7 @@ Similarity to http://gmod.org/wiki/DIYA !
 #-----------------------------------------------------------------
 # Global variables (available for all packages in this file)
 #-----------------------------------------------------------------
-our $VERSION = '0.4';
+our $VERSION = version->declare("v0.4.0");
 
 #-----------------------------------------------------------------
 # A list of allowed options/arguments (used in the new() method)
@@ -366,8 +367,8 @@ sub run {
 	foreach my $arg (@{$step->{arg}}) {
 	    next unless $arg->{key} eq 'in';
 	    next unless $arg->{type} =~ /file|dir/ ;
-	    croak "Can not read input at [". $arg->{value}. "]"
-		unless -e $arg->{value};
+#	    croak "Can not read input at [". $arg->{value}. "]"
+#		unless -e $arg->{value};
 	}
 
 #	print Dumper $step;exit;
@@ -402,7 +403,8 @@ sub render {
     foreach my $arg (@{$step->{arg}}) {
 
 	if (defined $arg->{type} and $arg->{type} eq 'unnamed') {
-	    $str .= ' "'. $arg->{value}. '"';
+	    #$str .= ' "'. $arg->{value}. '"';
+	    $str .= ' '. $arg->{value};
 	    next;
 	}
 
