@@ -3,9 +3,9 @@
 # Author: Heikki Lehvaslaiho <heikki.lehvaslaiho@gmail.com>
 # For copyright and disclaimer see Pipeline::Simple.pod.
 #
-# Lghtweight workflow manager
+# Lightweight workflow manager
 
-package Pipeline;
+package Pipeline::Simple;
 
 use strict;
 use warnings;
@@ -171,15 +171,13 @@ sub config {
 	$self->name($self->{config}->{name} || '');
 	$self->description($self->{config}->{description} || '');
 
-
 	# go through all steps once
 	my $nexts;		# hashref for finding start point(s)
 	for my $id (sort keys %{$self->{config}->{step}}) {
 	    my $step = $self->{config}->{step}->{$id};
 
-	    # bless all steps into Pipepeline objects
+	    # bless all steps into Pipeline objects
 	    bless $step, ref($self);
-
 
 	    #print "ERROR: $id already exists\n" if defined $self->step($id); 
 	    # create the list of all steps to be used by each_step()
@@ -218,7 +216,9 @@ sub config {
 		# note only one of the each type can be used
 		foreach my $arg (@{$step->{arg}}) {
 		    #print Dumper $arg;
-		    next unless $arg->{key} eq 'in' and defined $arg->{type} and $arg->{type} eq $self->itype;
+		    next unless $arg->{key} eq 'in' and 
+			        defined $arg->{type} and 
+			        $arg->{type} eq $self->itype;
 		    #print Dumper $self->itype, $step->id, $arg;
 		    $arg->{value} = $self->input;
 		    #print Dumper $arg;
@@ -476,8 +476,8 @@ sub stringify {
 
 =head2 
 
-pipeline.pl  -config pipelines/string_manipulation.xml -graph  > /tmp/p.dot; dot -Tpng /tmp/p.dot| display
-
+  pipeline.pl  -config pipelines/string_manipulation.xml -graph  > \
+    /tmp/p.dot; dot -Tpng /tmp/p.dot| display
 
 =cut
 
@@ -502,7 +502,8 @@ sub graphviz {
     foreach my $step ($self->each_step) {
 	$g->add_node($step->id, label => $step->id. " : ". $step->name );
 	if ($step->each_next) {
-	    map {  $g->add_edge($step->id => $_, label => $step->render('display') ) }  $step->each_next;
+	    map {  $g->add_edge($step->id => $_, label => $step->render('display') ) }
+		$step->each_next;
 	} else {
 	    $end++;
 	    $g->add_node($end, label => ' ');
