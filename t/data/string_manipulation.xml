@@ -3,7 +3,7 @@
   <version>0.1</version>
   <desciption>Example of a pipeline
     Same as running:
-       echo 'abcd' | wc -c | cat -n | wc -c
+       echo 'abcd' | wc -c ; echo 'abcd' | cat -n | wc -c
     so that every intermediate stage is stored in a file
   </desciption>
   <tool id="s1" name="echo">
