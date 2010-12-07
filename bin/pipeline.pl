@@ -12,8 +12,8 @@ B<obogrep> [B<--version> | [B<-?|-h|--help>] | [B<-g|--debug>] |
 
 =head1 DESCRIPTION
 
-For more, check the documetation in the perl module 'Pipeline'
 
+For more, check the documentation in the perl module L<Pipeline::Simple>.
 
 
 Extract matching entries form obo format files.
@@ -25,7 +25,7 @@ Extract matching entries form obo format files.
 
 =cut
 
-use Pipeline;
+use Pipeline::Simple;
 use Getopt::Long;
 use Carp;
 
@@ -46,7 +46,7 @@ our $DIR = '.';
 our $GRAPHVIZ;
 our $INPUT = '';
 our $ITYPE  =  '';
-#our $CONTINUE;
+#our $CONTINUE; # not implemented yet
 our $START  =  '';
 our $STOP  =  '';
 our $ERROR;
@@ -71,7 +71,7 @@ GetOptions(
 
 my %args;
 $args{config} = $CONFIG if $CONFIG;
-$args{dir} = $DIR;
+$args{dir}   = $DIR;
 $args{input} = $INPUT if $INPUT;
 $args{itype} = $ITYPE if $ITYPE;
 $args{start} = $START if $START;
@@ -79,18 +79,17 @@ $args{stop}  = $STOP  if $STOP;
 #use Data::Dumper; print Dumper \%args; exit;
 
 $ERROR = 1  and croak "ERROR: Need either explicit config file or ".
-    "it has to found the working directory\n"
+    "it has to be found the working directory\n"
     unless -e 'config.xml' or $CONFIG;
 
-my $p = Pipeline->new(%args);
+my $p = Pipeline::Simple->new(%args);
 
 print $p->graphviz and exit if $GRAPHVIZ;
 $p->stringify and exit if $DEBUG;
 
 $p->run() unless $DEBUG;
 
-#use Data::Dumper;
-#print Dumper $p;
+#use Data::Dumper; print Dumper $p;
 
 END {
 
