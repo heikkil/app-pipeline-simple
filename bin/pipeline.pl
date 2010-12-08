@@ -145,7 +145,7 @@ my $p = Pipeline::Simple->new(%args);
 print $p->graphviz and exit if $GRAPHVIZ;
 $p->stringify and exit if $DEBUG;
 
-$p->run() unless $DEBUG;
+$p->run();
 
 #use Data::Dumper; print Dumper $p;
 
