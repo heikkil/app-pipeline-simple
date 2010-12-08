@@ -19,16 +19,6 @@ use Data::Dumper;
 #use Log::Log4perl;
 
 
-=pod
-
- sceleton
-
-Tue Apr 27 15:48:29 AST 2010
-
-Similarity to http://gmod.org/wiki/DIYA !
-
-=cut
-
 #-----------------------------------------------------------------
 # Global variables (available for all packages in this file)
 #-----------------------------------------------------------------
@@ -311,9 +301,7 @@ sub next_step {
 
 sub time {
     my ($self) = @_;
-    my $date = `date`;
-    chomp $date;
-    return $date;
+    return scalar localtime;
 }
 
 sub run {
