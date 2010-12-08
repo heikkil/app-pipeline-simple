@@ -6,22 +6,80 @@ pipeline.pl - pipeline running interface
 
 =head1 SYNOPSIS
 
-B<obogrep> [B<--version> | [B<-?|-h|--help>] | [B<-g|--debug>] |
-   [B<[-d|--directory> value] | B<[-c|--config> |
-
+B<pipeline.pl> [B<--version> | [B<-?|-h|--help>] | [B<-g|--debug>] |
+   B<[--graphviz> | B<[-c|--config> file | [B<[-d|--directory> value] |
+   B<[-i|--input> string| B<[-it|--itype> string |
+   [B<[--start> value] | [B<[--stop> value]
 
 =head1 DESCRIPTION
 
 
-For more, check the documentation in the perl module L<Pipeline::Simple>.
+For internal details of the pipeline, check the documentation for the
+perl module L<Pipeline::Simple>.
 
 
-Extract matching entries form obo format files.
+=head1 OPTIONS
 
-  -v, --invert-match
+=over 7
 
-    Invert the sense of matching, to select non-matching lines.  (-v
-    is specified by POSIX.)
+=item B<-v | --version>
+
+Print out a line with the program name and version number.
+
+=item B<-? | -h | --help>
+
+Show this help.
+
+=item B<-g | --debug>
+
+Print out the unix command line equivalent of the pipeline and exit.
+
+Reports parsing and logical errors.
+
+=item B<--graphviz>
+
+Print out a graphviz dot file.
+
+Example one liner to display a graph of the pipeline: 
+
+  pipeline.pl -config t/data/string_manipulation.xml -graph > \ 
+  /tmp/p.dot; dot -Tpng /tmp/p.dot| display
+
+=item B<-c | --config> string
+
+Path to the XML config file. Required.
+
+=item B<-d | --directory> string
+
+Directory to keep all files. Required.?
+
+If the directory does not exist, it will be created and a copy of the
+config file will be copied in it under name C<config.xml>. For
+subsequent runs, the config file can be omitted from the command
+line. This makes it easy to adjust the parameters.
+
+=item B<-i | --input> string
+
+Optional input to pipeline.
+
+=item B<-it | --itype> string
+
+Type of the optional input. Values?
+
+=item B<--start> string
+
+Name of the step to start or restart the pipeline.
+
+Fails if the prerequisites of the step are not met, i.e. the input file(s) does not exist.
+
+=item B<--stop> string
+
+Name of the step to stop the pipeline. Defaults to the last step.
+
+
+
+
+
 
 =cut
 
