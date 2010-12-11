@@ -37,6 +37,7 @@ our $VERSION = version->declare("v0.5.0");
          description    => 1,
 
          name           => 1,
+	 path           => 1,
 	 args           => 1,
 	 next_id        => 1,
 
