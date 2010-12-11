@@ -22,7 +22,7 @@ use Data::Dumper;
 #-----------------------------------------------------------------
 # Global variables (available for all packages in this file)
 #-----------------------------------------------------------------
-our $VERSION = version->declare("v0.4.0");
+our $VERSION = version->declare("v0.5.0");
 
 #-----------------------------------------------------------------
 # A list of allowed options/arguments (used in the new() method)
