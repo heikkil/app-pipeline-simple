@@ -386,7 +386,15 @@ sub render {
 #    print "\n"; print Dumper $step; print "\n";
 
     my $str;
+    # path to program
+    if (defined $step->{path}) {
+	$str .=  $step->{path};
+	$str .=  '/' unless substr($str, -1, 1) eq '/' ;
+    }
+    # program name
     $str .=  $step->{name};
+
+    # arguments
     my $endstr = '';
     foreach my $arg (@{$step->{arg}}) {
 
