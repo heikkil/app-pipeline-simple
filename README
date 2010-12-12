@@ -20,7 +20,8 @@ To install this module, run the following commands:
 	make test
 	make install
 
-Alternatively, to install with Module::Build, you can use the following commands:
+Alternatively, to install with Module::Build, you can use the
+following commands:
 
 	perl Build.PL
 	./Build
@@ -31,6 +32,7 @@ Alternatively, to install with Module::Build, you can use the following commands
 DEPENDENCIES
 
 XML::Simple
+GraphViz
 Log::Log4perl
 
 SUPPORT AND DOCUMENTATION
