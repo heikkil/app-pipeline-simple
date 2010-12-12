@@ -1,5 +1,8 @@
 Revision history for Pipeline
 
+0.5     Sun Dec 12 09:02:56 2010
+	Documentation added. Most of the functionality is in place.
+	TODO: tests, use Log::Log4perl for logging
+
 0.0.1  Thu Apr 22 09:15:16 2010
        Initial release.
-

@@ -3,8 +3,10 @@ Changes
 MANIFEST
 Makefile.PL
 README
-lib/Pipeline.pm
+lib/Pipeline/Simple.pm
+lib/Pipeline/Simple.pod
 t/00.load.t
 t/perlcritic.t
 t/pod-coverage.t
 t/pod.t
+META.yml

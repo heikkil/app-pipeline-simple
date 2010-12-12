@@ -23,7 +23,7 @@ use Data::Dumper;
 # Global variables (available for all packages in this file)
 #-----------------------------------------------------------------
 our $VERSION = version->declare("v0.5.0");
-
+#my $VERSION = "0.5";
 #-----------------------------------------------------------------
 # A list of allowed options/arguments (used in the new() method)
 #-----------------------------------------------------------------
@@ -53,6 +53,8 @@ our $VERSION = version->declare("v0.5.0");
 	 continue       => 1,
 	 start          => 1,
 	 stop           => 1,
+
+	 debug          => 1,
 	 );
 
     sub accessible {
@@ -139,9 +141,10 @@ sub new {
     # this needs to be done last
     $self->config($args{'config'}) if defined $args{'config'};
 
-    #print Dumper $self; exit;
-    $self->config($self->dir. '/config.xml') if not $self->{config} and -e $self->dir. '/config.xml';
-    croak "ERROR: pipeline config file not provided or not found in pwd" if not $self->{config};
+    $self->config($self->dir. '/config.xml')
+	if not $self->{config} and defined $self->dir and -e $self->dir. '/config.xml';
+    croak "ERROR: pipeline config file not provided or not found in pwd"
+	if not $self->{config} and not $self->debug;
     # done
 
 

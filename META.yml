@@ -1,0 +1,25 @@
+---
+name: Pipeline-Simple
+version: v0.5.0
+author:
+  - 'Heikki Lehvaslaiho <heikki.lehvaslaiho@gmail.com>'
+abstract: A simple workflow manager
+license: perl
+resources:
+  license: http://dev.perl.org/licenses/
+requires:
+  GraphViz: 0
+  Log::Log4perl: 0
+  Test::More: 0
+  XML::Simple: 0
+  version: 0
+configure_requires:
+  Module::Build: 0.340201
+provides:
+  Pipeline::Simple:
+    file: lib/Pipeline/Simple.pm
+    version: v0.5.0
+generated_by: Module::Build version 0.340201
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4

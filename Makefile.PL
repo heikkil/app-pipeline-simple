@@ -6,7 +6,7 @@ WriteMakefile(
     NAME                => 'Pipeline::Simple',
     AUTHOR              => 'Heikki Lehvaslaiho <heikki.lehvaslaiho@gmail.com>',
     VERSION_FROM        => 'lib/Pipeline/Simple.pm',
-    ABSTRACT_FROM       => 'lib/Pipeline/Simple.pm',
+    ABSTRACT_FROM       => 'lib/Pipeline/Simple.pod',
     EXE_FILES           => ['bin/pipeline.pl'],
     PL_FILES            => {},
     PREREQ_PM => {
