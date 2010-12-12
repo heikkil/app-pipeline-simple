@@ -67,6 +67,15 @@ into an image file and opens it with Imagemagic display program:
   pipeline.pl -config t/data/string_manipulation.xml -graph > \
     /tmp/p.dot; dot -Tpng /tmp/p.dot | display
 
+Additionally, you can check the xml for validity using the DTD file in
+the docs directory. The DTD has been written so that any attribute
+that can occurr only once can equally well be written as a tag. That
+is how L<XML::Simple> treats XML, so the the aim is to maximize that
+convernience. The following commandline is convenient way to validate
+an XML file:
+
+  xmllint --dtdvalid docs/pipeline.dtd t/data/string_manipulation.xml
+
 =head2 CONFIGURATION
 
 The default configuration is written in XML. The top level tag,
@@ -123,6 +132,10 @@ The last two values C<file> and C<dir> are not needed by the pipeline
 but are useful to include to make the pipeline easier to read for
 humans. The interpretation of these arguments is done by the program
 executable called by the step.
+
+Finally, the C<step> tag can contain one or more C<next> tags that
+tell the pipeline the ID of the next step in the execution. Typically,
+these steps depends on the previous step for input.
 
 Practicies that are completely bonkers, like spaces in file names, are
 not supported.
