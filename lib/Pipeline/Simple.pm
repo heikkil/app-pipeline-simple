@@ -680,5 +680,64 @@ See F<http://dev.perl.org/licenses/artistic.html>
 
 This software is provided "as is" without warranty of any kind.
 
+
+=head1 SUBRUTINES
+
+=head2 new
+
+Contructor that uses AUTOLOAD
+
+=head2 config
+
+Read in the named config file.
+
+=head2 log
+
+Save config and log of steps into file.
+
+=head2 dir
+
+Working directory where all files are stored.
+
+=head2 step
+
+Returns the step by its ID.
+
+=head2 each_next
+
+Return an array of steps after this one.
+
+=head2 each_step
+
+Return all steps.
+
+=head2 next_step
+
+Deprecated. Superceded by each_next()
+
+=head2 time
+
+Return timestamp.
+
+=head2 run
+
+Run this step and call the one(s).
+
+=head2 render
+
+Transcribe the step into a *nix command line string ready for display
+or execution.
+
+=head2 stringify
+
+Analyze the configuration without executing it.
+
+=head2 graphviz
+
+Create a GraphViz dot file from the config.
+
+=for Pod::Coverage accessible
+
 =cut
+
 
