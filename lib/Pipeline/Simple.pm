@@ -6,11 +6,10 @@
 # Lightweight workflow manager
 
 package Pipeline::Simple;
+# ABSTRACT: Simple workflow manager
 
 use strict;
 use warnings;
-use version;
-use vars qw( $AUTOLOAD );
 
 use Carp;
 use File::Basename;
@@ -22,8 +21,10 @@ use Data::Dumper;
 #-----------------------------------------------------------------
 # Global variables (available for all packages in this file)
 #-----------------------------------------------------------------
-our $VERSION = version->declare("v0.5.0");
-#my $VERSION = "0.5";
+
+use vars qw( $AUTOLOAD );
+
+
 #-----------------------------------------------------------------
 # A list of allowed options/arguments (used in the new() method)
 #-----------------------------------------------------------------
@@ -104,9 +105,12 @@ sub AUTOLOAD {
 	throw ("No such method: $AUTOLOAD");
     }
 
+    ## no critic  
     no strict 'refs'; 
     *{$AUTOLOAD} = $ref_sub;
     use strict 'refs'; 
+    ## use critic
+
     return $ref_sub->($self, $value);
 }
 
@@ -133,7 +137,9 @@ sub new {
 
     foreach my $key (keys %args) {
 	next if $key eq 'config'; # this needs to be evaluated last
+	## no critic  
         no strict 'refs';
+	## use critic  
         $self->$key($args{$key});
     }
     #$log->debug("Pipeline object id ". $self->id);
@@ -273,20 +279,17 @@ sub dir {
 #-----------------------------------------------------------------
 #
 #-----------------------------------------------------------------
-sub step ($$) {
+sub step {
     my ($self) = shift;
     my $id = shift;
     return $self->{config}->{step}->{$id};
-#    print Dumper $id;
-#    print Dumper $self->step(shift); 
-    #shift->step(shift);
 }
 
-sub each_next ($) {
+sub each_next {
     map { $_->{id} } grep { $_->{id} } @{shift->{next}};
 }
 
-sub each_step ($) {
+sub each_step {
     @{shift->{steps}};
 }
 

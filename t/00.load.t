@@ -10,7 +10,7 @@ sub test_input_file {
     return File::Spec->catfile('t', 'data', @_);
 }
 
-diag( "Testing Pipeline $Pipeline::Simple::VERSION" );
+diag( "Testing Pipeline::Simple" );
 
 # debug ignores missing config file
 my $p = Pipeline::Simple->new(debug => 1);

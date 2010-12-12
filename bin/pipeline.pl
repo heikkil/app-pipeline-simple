@@ -87,6 +87,9 @@ use Pipeline::Simple;
 use Getopt::Long;
 use Carp;
 
+use strict;
+use warnings;
+
 use constant PROGRAMME_NAME => 'pipeline.pl';
 use constant VERSION => '0.4';
 
@@ -136,9 +139,11 @@ $args{start} = $START if $START;
 $args{stop}  = $STOP  if $STOP;
 #use Data::Dumper; print Dumper \%args; exit;
 
-$ERROR = 1  and croak "ERROR: Need either explicit config file or ".
-    "it has to be found the working directory\n"
-    unless -e 'config.xml' or $CONFIG;
+unless (-e 'config.xml' or $CONFIG ) {
+    $ERROR = 1;
+    croak "ERROR: Need either explicit config file or ".
+	"it has to be found the working directory\n"
+}
 
 my $p = Pipeline::Simple->new(%args);
 
