@@ -13,6 +13,7 @@ WriteMakefile(
         'Test::More'    => 0,
         'version'       => 0.77,
 	'XML::Simple'   => 0,
+	'GraphViz'      => 0,
 	'Log::Log4perl' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

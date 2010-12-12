@@ -11,6 +11,7 @@ my $builder = Module::Build->new(
         'Test::More'    => 0,
         'version'       => 0,
 	'XML::Simple'   => 0,
+	'GraphViz'      => 0,
 	'Log::Log4perl' => 0,
 
     },
