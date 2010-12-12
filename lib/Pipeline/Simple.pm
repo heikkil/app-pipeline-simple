@@ -477,12 +477,6 @@ sub stringify {
     #print "\n"; print Dumper $outputs;
 }
 
-=head2 
-
-  pipeline.pl  -config pipelines/string_manipulation.xml -graph  > \
-    /tmp/p.dot; dot -Tpng /tmp/p.dot| display
-
-=cut
 
 sub graphviz {
     my $self = shift;
@@ -525,3 +519,166 @@ __END__
 #-----------------------------------------------------------------
 # only for debugging
 #-----------------------------------------------------------------
+
+=head1 NAME
+
+Pipeline::Simple - A simple workflow manager
+
+=head1 SYNOPSIS
+
+  # called from a script
+
+=head1 DESCRIPTION
+
+Workflow management in computational (biological) sciences is a hard
+problem. This module is based on assumption that unix pipe and
+redirect system is closest to optimal solution with these
+improvements:
+
+* Enforce the storing of all intermediry steps in a file. 
+
+  This is for clarity, accountability and to enable arbitrarily big
+  data sets. Pipeline can contain a independent step that removes
+  intermediate files if so required.
+
+* Naming of each step.
+
+  This is to make it possible to stop, restart, and restart at any
+  intermediate step after adjusting pipeline parameters.
+
+* detailed logging ()
+
+  To keep track of all runs of the pipeline.
+
+A pipeline is a collection of steps that are functionally equivalent
+to a pipeline. In other words, execution of a pipeline equals to
+execution of a each ordered step within the pipeline. From that derives
+that the pipeline object model needs only one object that can
+recursively represent the whole pipeline and individual steps.
+
+=head2 RUNNING
+
+Pipeline::Simple comes with a wrapper C<pipeline.pl> command line
+program. Do
+
+   pipeline.pl -h
+
+to see instructions on how to run it.
+
+Example run:
+
+  pipeline.pl -config t/data/string_manipulation.xml -d /tmp/test
+
+reads instructions from the config file and writes all information to
+the project directory.
+
+
+The debug option will parse the config file, print out the command
+line equivalents of all commands and print warnings of problems
+encountered in the file:
+
+  pipeline.pl -config t/data/string_manipulation.xml -d /tmp/test
+
+An other tool integrated in the system is visualisation of the
+execution graph. It is done withe help of L<GraphViz> perl interface
+module that will need to be installed from CPAN first.
+
+The following command line creates the Graphviz dot file, converts it
+into an image file and opens it with Imagemagic display program:
+
+  pipeline.pl -config t/data/string_manipulation.xml -graph > \
+    /tmp/p.dot; dot -Tpng /tmp/p.dot | display
+
+Additionally, you can check the xml for validity using the DTD file in
+the docs directory. The DTD has been written so that any attribute
+that can occurr only once can equally well be written as a tag. That
+is how L<XML::Simple> treats XML, so the the aim is to maximize that
+convernience. The following commandline is convenient way to validate
+an XML file:
+
+  xmllint --dtdvalid docs/pipeline.dtd t/data/string_manipulation.xml
+
+=head2 CONFIGURATION
+
+The default configuration is written in XML. The top level tag,
+C<pipeline> encloses a unordered list of pipeline C<step>s. A sensible
+ordering is encouraged but the pipeline execution does not depend on
+it.
+
+In addition to step, there are only three other top level tags: 1)
+C<name> to give the pipeline a short name, 2) C<version> to indicate
+the version number and 3) C<description> to give a more verbose
+explanation what the pipeline does.
+
+  <pipeline>
+    <name>String Manipulation</name>
+    <version>0.4</version>
+    <description>Example of a pipeline
+      Same as running:
+         echo 'abcd' | tee /tmp/str | wc -c ; cat -n /tmp/str | wc -c
+      but every stage is stored in a file
+    </description>
+  ...
+  </pipeline>
+
+Each C<step> needs an C<id> that is unique within the pipeline and a
+C<name> that identifies an executable somewhere in the system
+path. Alternatively, you can give the path leading to the executable
+file with attribute C<path>. The name will be added to it, padded with
+a suitable separator character, if needed.
+
+Arguments to the executable are given individually within C<arg>
+tags. They are named with the C<key> attribute. A single hyphen is
+added in front of the arguments when they are executed. If two hyphens
+are needed, just add one the file.
+
+Arguments can exist without values, or they can be given with
+attribute C<value>.
+
+  <step id="s3" name="cat">
+    <arg key='n' />
+    <arg key='in' value="s1.txt" type='redir'/>
+    <arg key='out' value="s3_mod.txt" type='redir'/>
+    <next id="s4"/>
+  </step>
+
+There are two special keys C<in> and C<out> that need the further
+attibute C<type>. The attribute C<type> can get several kinds values:
+1) C<unnamed> that indicates that the argument is an unnamed argument
+to the excutable. 2) C<redir> will be interpreted as unix redirection
+character '&lt' or '&gt' depending on the context. 3) C<str> in a
+special case which is accompanied by an empty tring as a value that
+indicates that the string is read from the command line input.
+
+The last two values C<file> and C<dir> are not needed by the pipeline
+but are useful to include to make the pipeline easier to read for
+humans. The interpretation of these arguments is done by the program
+executable called by the step.
+
+Finally, the C<step> tag can contain one or more C<next> tags that
+tell the pipeline the ID of the next step in the execution. Typically,
+these steps depends on the previous step for input.
+
+Practicies that are completely bonkers, like spaces in file names, are
+not supported.
+
+=head1 ACKNOWLEDGMENTS
+
+
+=head1 COPYRIGHT
+
+Copyright (c) 2010, Heikki Lehvaslaiho, KAUST (King Abdullah
+University of Science and Technology)
+All Rights Reserved.
+
+This module is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+See F<http://dev.perl.org/licenses/artistic.html>
+
+=head1 DISCLAIMER
+
+This software is provided "as is" without warranty of any kind.
+
+=cut
+
