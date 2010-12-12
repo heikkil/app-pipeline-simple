@@ -1,8 +1,24 @@
-Revision history for Pipeline
+Revision history for Pipeline::Simple
 
-0.5     Sun Dec 12 09:02:56 2010
-	Documentation added. Most of the functionality is in place.
-	TODO: tests, use Log::Log4perl for logging
+0.6	 
+	 Using Dist::Zilla for management of the code base
 
-0.0.1  Thu Apr 22 09:15:16 2010
-       Initial release.
+0.5	 Sun Dec 12 09:02:56    2010
+	 Rename to Pipeline::Simple
+	 Documentation added.
+	 TODO: tests, use Log::Log4perl for logging
+
+0.4	 Sun May 2 20:38:07 2010 +0300
+	 Small functionality tweeks
+
+0.3	 Tue Apr 27 09:30:17 2010 +0300
+	 start and stop the pipeline at will
+
+0.2    	 Mon Apr 26 13:15:44 2010
+	 All functionality in place
+
+0.1	 Fri Apr 23 12:38:37 2010
+	 Basic functions
+
+0.0.0  	 Thu Apr 22 09:15:16 2010
+       	 Start the project: Pipeline
