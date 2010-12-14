@@ -535,7 +535,7 @@ problem. This module is based on assumption that unix pipe and
 redirect system is closest to optimal solution with these
 improvements:
 
-* Enforce the storing of all intermediry steps in a file. 
+* Enforce the storing of all intermediary steps in a file. 
 
   This is for clarity, accountability and to enable arbitrarily big
   data sets. Pipeline can contain a independent step that removes
@@ -546,7 +546,7 @@ improvements:
   This is to make it possible to stop, restart, and restart at any
   intermediate step after adjusting pipeline parameters.
 
-* detailed logging ()
+* detailed logging (needs redoing)
 
   To keep track of all runs of the pipeline.
 
@@ -554,7 +554,7 @@ A pipeline is a collection of steps that are functionally equivalent
 to a pipeline. In other words, execution of a pipeline equals to
 execution of a each ordered step within the pipeline. From that derives
 that the pipeline object model needs only one object that can
-recursively represent the whole pipeline and individual steps.
+recursively represent the whole pipeline as well as individual steps.
 
 =head2 RUNNING
 
@@ -580,10 +580,10 @@ encountered in the file:
   pipeline.pl -config t/data/string_manipulation.xml -d /tmp/test
 
 An other tool integrated in the system is visualisation of the
-execution graph. It is done withe help of L<GraphViz> perl interface
-module that will need to be installed from CPAN first.
+execution graph. It is done with the help of L<GraphViz> perl
+interface module that will need to be installed from CPAN.
 
-The following command line creates the Graphviz dot file, converts it
+The following command line creates a Graphviz dot file, converts it
 into an image file and opens it with Imagemagic display program:
 
   pipeline.pl -config t/data/string_manipulation.xml -graph > \
@@ -591,10 +591,10 @@ into an image file and opens it with Imagemagic display program:
 
 Additionally, you can check the xml for validity using the DTD file in
 the docs directory. The DTD has been written so that any attribute
-that can occurr only once can equally well be written as a tag. That
-is how L<XML::Simple> treats XML, so the the aim is to maximize that
-convernience. The following commandline is convenient way to validate
-an XML file:
+that can occur only once can equally well be written as a tag. That is
+how the module used to manage configurations, L<XML::Simple>, treats
+XML, so the the aim is to maximize that convernience. The following
+commandline is an easy way to validate an XML file:
 
   xmllint --dtdvalid docs/pipeline.dtd t/data/string_manipulation.xml
 
