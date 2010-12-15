@@ -32,3 +32,8 @@ by hand to add:
 
   return 1 if $file->name =~ /~$/;
   return 1 if $file->name =~ /#/;
+
+* moving to Log::Log4perl
+
+log4 perl works. I got rid of the AUTOLOAD on my module. 
+>>>>>>> log

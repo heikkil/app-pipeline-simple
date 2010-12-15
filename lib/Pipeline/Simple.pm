@@ -15,119 +15,15 @@ use Carp;
 use File::Basename;
 use XML::Simple;
 use Data::Dumper;
-#use Log::Log4perl;
+use Log::Log4perl qw(get_logger :levels :no_extra_logdie_message);
 
 
-#-----------------------------------------------------------------
-# Global variables (available for all packages in this file)
-#-----------------------------------------------------------------
-
-use vars qw( $AUTOLOAD );
-
-
-#-----------------------------------------------------------------
-# A list of allowed options/arguments (used in the new() method)
-#-----------------------------------------------------------------
-
-
-{
-    my %allowed =
-	(
-
-         id             => 1,
-         description    => 1,
-
-         name           => 1,
-	 path           => 1,
-	 args           => 1,
-	 next_id        => 1,
-
-	 config         => 1,
-	 add            => 1,
-
-	 input          => 1,
-         itype          => 1,
-	 dir            => 1,
-	 run            => 1,
-	 stringify      => 1,
-
-	 continue       => 1,
-	 start          => 1,
-	 stop           => 1,
-
-	 debug          => 1,
-	 );
-
-    sub accessible {
-	my ($self, $attr) = @_;
-	exists $allowed{$attr};
-    }
-}
-
-#-----------------------------------------------------------------
-# Configure the logger
-#-----------------------------------------------------------------
-my $logger_config = q(
-    log4perl.category.Pipeline         = WARN, Logfile
-    log4perl.appender.Logfile          = Log::Log4perl::Appender::File
-    log4perl.appender.Logfile.filename = pipeline.log
-    log4perl.appender.Logfile.layout = \
-	Log::Log4perl::Layout::PatternLayout
-    log4perl.appender.Logfile.layout.ConversionPattern = %d (%L): [%p] %m %n
-        );
-
-
-
-
-#-----------------------------------------------------------------
-# Deal with 'set' and 'get' methods.
-#-----------------------------------------------------------------
-sub AUTOLOAD {
-    my ($self, $value) = @_;
-    my $ref_sub;
-    if ($AUTOLOAD =~ /.*::(\w+)/ && $self->accessible ("$1")) { 
-
-	# get/set method
-	my $attr_name = "$1";
-	$ref_sub =
-	    sub {
-		# get method
-		local *__ANON__ = "__ANON__$attr_name" . "_" . ref ($self);
-		my ($this, $value) = @_;
-		return $this->{$attr_name} unless defined $value;
-
-		# set method
-		$this->{$attr_name} = $value;
-		return $this->{$attr_name};
-	    };
-
-    } else {
-	throw ("No such method: $AUTOLOAD");
-    }
-
-    ## no critic  
-    no strict 'refs'; 
-    *{$AUTOLOAD} = $ref_sub;
-    use strict 'refs'; 
-    ## use critic
-
-    return $ref_sub->($self, $value);
-}
-
-#-----------------------------------------------------------------
-# Keep it here! The reason is the existence of AUTOLOAD...
-#-----------------------------------------------------------------
-sub DESTROY { }
 
 #-----------------------------------------------------------------
 # new
 #-----------------------------------------------------------------
 sub new {
     my ($class, @args) = @_;
-
-    # start logging
-    #Log::Log4perl->init_once( \$logger_config );
-    #my $log = get_logger("Pipeline");
 
     # create an object
     my $self = bless {}, ref ($class) || $class;
@@ -142,24 +38,165 @@ sub new {
 	## use critic  
         $self->$key($args{$key});
     }
-    #$log->debug("Pipeline object id ". $self->id);
-
-    # this needs to be done last
+    # this argument needs to be done last
     $self->config($args{'config'}) if defined $args{'config'};
 
     $self->config($self->dir. '/config.xml')
 	if not $self->{config} and defined $self->dir and -e $self->dir. '/config.xml';
     croak "ERROR: pipeline config file not provided or not found in pwd"
 	if not $self->{config} and not $self->debug;
+
+    $self->configure_logging;
+
     # done
-
-
     return $self;
 }
+
+
+#-----------------------------------------------------------------
+# Configure the logger
+#-----------------------------------------------------------------
+
+sub configure_logging {
+    my $self = shift;
+
+    my $logger_config = q(
+      log4perl.category.Pipeline         = INFO, Screen
+        log4perl.appender.Screen         = Log::Log4perl::Appender::Screen
+        log4perl.appender.Screen.stderr  = 1
+        log4perl.appender.Screen.layout  = Log::Log4perl::Layout::SimpleLayout
+    );
+
+    Log::Log4perl->init_once( \$logger_config );
+    my $logger = Log::Log4perl->get_logger("Pipeline");
+
+    if ($self->dir) {
+	my $to_file = Log::Log4perl::Appender->new
+	    ("Log::Log4perl::Appender::File",
+	     name     => 'Log',
+	     filename => $self->dir. '/pipeline.log',
+	     mode     => 'append');
+	my $pattern =  '[%d %r] %p %L | %m%n';
+	my $layout = Log::Log4perl::Layout::PatternLayout->new ($pattern);
+        $to_file->layout ($layout);
+
+	$logger->add_appender($to_file);
+    }
+
+    $logger->level( $INFO );
+#    $logger->debug("Pipeline object id = ". $self->id);
+#    $logger->warn("Pipeline object id = ". $self->id);
+
+    $self->logger($logger);
+
+}
+
+
 
 #-----------------------------------------------------------------
 #
 #-----------------------------------------------------------------
+
+sub id {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_id} = $value;
+    }
+    return $self->{_id};
+}
+
+sub description {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_description} = $value;
+    }
+    return $self->{_description};
+}
+
+sub name {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_name} = $value;
+    }
+    return $self->{_name};
+}
+
+sub path {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_path} = $value;
+    }
+    return $self->{_path};
+}
+
+sub next_id {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_next_id} = $value;
+    }
+    return $self->{_next_id};
+}
+
+
+sub input {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_input} = $value;
+    }
+    return $self->{_input};
+}
+
+
+sub itype {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_itype} = $value;
+    }
+    return $self->{_itype};
+}
+
+sub add {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_add} = $value;
+    }
+    return $self->{_add};
+}
+
+sub start {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_start} = $value;
+    }
+    return $self->{_start};
+}
+
+
+sub stop {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_stop} = $value;
+    }
+    return $self->{_stop};
+}
+
+
+sub debug {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_debug} = $value;
+    }
+    return $self->{_debug};
+}
+
+sub logger {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_logger} = $value;
+    }
+    return $self->{_logger};
+}
+
 sub config {
     my ($self, $config) = @_;
     if ($config) {
@@ -256,6 +293,7 @@ sub log {
 
     open my $CONF, '>', $CONFIGFILE;
     print $CONF XMLout($self->{config});
+    $self->logger->info("Written the pipeline config file");
 
     open my $LOG, '>', $LOGFILE;
     print $LOG XMLout($self->{log});
@@ -332,8 +370,8 @@ sub run {
     # User has given a starting point id
     if ($self->{start}) {
 	push @steps, $self->{start};
+	$self->logger->info("Starting at [". $self->start. "]" );
     }
-
     # determine where the execution of the pipeline was interrupted
     elsif (-e $self->dir. "/log.xml") {
 	$self->{log} = XMLin('log.xml', KeyAttr => {step => 'id'});	
@@ -342,21 +380,26 @@ sub run {
 	    push @steps, $step_id
 		if not defined $self->{log}->{$step_id}->{end_time};
 	}
+	if (@steps) {
+	    $self->logger->info("Continuing at ". $steps[0] );
+	} else {
+	    $self->logger->warn("Pipeline is already finished. Define a start to rerun" );
+	    exit 0;
+	}
     } else { 	# or start from the beginning
 	@steps = $self->each_next;
+	$self->logger->info("Starting at [". $steps[0] . "]");
     }
+    
 #    print Dumper \@steps; exit;
 
     #
     # Execute one step at a time
     #
     while (my $step_id = shift @steps) {
-	$self->{log}->{$step_id}->{start_time} = $self->time;
 	my $step = $self->step($step_id);
 	croak "ERROR: Step [$step_id] does not exist" unless $step;
 	# check that we got an object
-
-	print $step->id, "\t", $step->render, "\n";
 
 	# check that the input file exists
 	foreach my $arg (@{$step->{arg}}) {
@@ -366,11 +409,12 @@ sub run {
 #		unless -e $arg->{value};
 	}
 
-#	print Dumper $step;exit;
-	$self->{log}->{$step_id}->{action} = $step->render;
-
 	my $command = $step->render;
+	$self->{log}->{$step_id}->{action} = $command;
+	$self->{log}->{$step_id}->{start_time} = $self->time;
+	$self->logger->info("Running     [". $step->id . "] $command" );
 	`$command`;
+	$self->logger->info("Finished    [". $step->id . "]" );
 	$self->{log}->{$step_id}->{end_time} = $self->time;
 
 	# Add next step(s) to the execution queue unless
@@ -685,11 +729,53 @@ This software is provided "as is" without warranty of any kind.
 
 =head2 new
 
-Contructor that uses AUTOLOAD
+Contructor
 
 =head2 config
 
 Read in the named config file.
+
+=head2 id
+
+ID of the step
+
+=head2 description
+
+Verbose desctiption of the step
+
+=head2 name
+
+Name of the program that will be executed
+
+=head2 path
+
+Path to the directory where the program recides. Can be used if the
+program is not on path. Will be prepended to the name.
+
+=head2 add
+
+... for the life of me, I can not remember not find this one FIX
+
+=head2 next_id
+
+ID of the next step in execution. It typically depends on the output
+of this step.
+
+=head2 input
+
+Value read in interactively from commanline
+
+=head2 itype
+
+type of input for the commandline value
+
+=head2 start
+
+The ID of the step to start the execution
+
+=head2 stop
+
+The ID of the step to stop the execution
 
 =head2 log
 
@@ -722,6 +808,10 @@ Return timestamp.
 =head2 run
 
 Run this step and call the one(s).
+
+=head2 debug
+
+Run in debug mode and test teh configuration file
 
 =head2 render
 
