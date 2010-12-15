@@ -15,7 +15,7 @@ use Carp;
 use File::Basename;
 use XML::Simple;
 use Data::Dumper;
-#use Log::Log4perl;
+use Log::Log4perl;
 
 
 #-----------------------------------------------------------------
@@ -28,6 +28,7 @@ use vars qw( $AUTOLOAD );
 #-----------------------------------------------------------------
 # A list of allowed options/arguments (used in the new() method)
 #-----------------------------------------------------------------
+
 
 
 {
@@ -74,7 +75,7 @@ my $logger_config = q(
     log4perl.appender.Logfile.layout = \
 	Log::Log4perl::Layout::PatternLayout
     log4perl.appender.Logfile.layout.ConversionPattern = %d (%L): [%p] %m %n
-        );
+);
 
 
 
@@ -126,8 +127,8 @@ sub new {
     my ($class, @args) = @_;
 
     # start logging
-    #Log::Log4perl->init_once( \$logger_config );
-    #my $log = get_logger("Pipeline");
+#    Log::Log4perl->init_once( \$logger_config );
+#    my $log = get_logger("Pipeline");
 
     # create an object
     my $self = bless {}, ref ($class) || $class;
@@ -142,7 +143,9 @@ sub new {
 	## use critic  
         $self->$key($args{$key});
     }
-    #$log->debug("Pipeline object id ". $self->id);
+ #   $log->debug("Pipeline object id ". $self->id);
+#    $log->warn("Pipeline object id | warn". $self->id);
+
 
     # this needs to be done last
     $self->config($args{'config'}) if defined $args{'config'};
@@ -160,6 +163,92 @@ sub new {
 #-----------------------------------------------------------------
 #
 #-----------------------------------------------------------------
+
+sub id {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_id} = $value;
+    }
+    return $self->{_id};
+}
+
+sub description {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_description} = $value;
+    }
+    return $self->{_description};
+}
+
+sub name {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_name} = $value;
+    }
+    return $self->{_name};
+}
+
+sub path {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_path} = $value;
+    }
+    return $self->{_path};
+}
+
+sub next_id {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_next_id} = $value;
+    }
+    return $self->{_next_id};
+}
+
+
+sub input {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_input} = $value;
+    }
+    return $self->{_input};
+}
+
+
+sub itype {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_itype} = $value;
+    }
+    return $self->{_itype};
+}
+
+
+sub start {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_start} = $value;
+    }
+    return $self->{_start};
+}
+
+
+sub stop {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_stop} = $value;
+    }
+    return $self->{_stop};
+}
+
+
+sub debug {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_debug} = $value;
+    }
+    return $self->{_debug};
+}
+
 sub config {
     my ($self, $config) = @_;
     if ($config) {
@@ -691,6 +780,44 @@ Contructor that uses AUTOLOAD
 
 Read in the named config file.
 
+=head2 id
+
+ID of the step
+
+=head2 description
+
+Verbose desctiption of the step
+
+=head2 name
+
+Name of the program that will be executed
+
+=head2 path
+
+Path to the directory where the program recides. Can be used if the
+program is not on path. Will be prepended to the name.
+
+=head2 next_id
+
+ID of the next step in execution. It typically depends on the output
+of this step.
+
+=head2 input
+
+Value read in interactively from commanline
+
+=head2 itype
+
+type of input for the commandline value
+
+=head2 start
+
+The ID of the step to start the execution
+
+=head2 stop
+
+The ID of the step to stop the execution
+
 =head2 log
 
 Save config and log of steps into file.
@@ -722,6 +849,10 @@ Return timestamp.
 =head2 run
 
 Run this step and call the one(s).
+
+=head2 debug
+
+Run in debug mode and test teh configuration file
 
 =head2 render
 
