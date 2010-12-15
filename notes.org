@@ -3,7 +3,7 @@
 http://gmod.org/wiki/DIYA !
 Tue Apr 27 15:48:29 AST 2010
 
-* how to release
+* how to release using dzil
 
 Sun Dec 12 13:29:48 AST 2010
 
@@ -13,3 +13,26 @@ dzil test
 dzil build
 ...
 dzil clean
+
+Recipe for dzil and git integration:
+ 
+http://www.polettix.it/perlettix/id_dist-zilla
+
+Dag Olden's bundle and examples:
+
+http://search.cpan.org/~dagolden/Dist-Zilla-PluginBundle-DAGOLDEN-0.013/lib/Dist/Zilla/PluginBundle/DAGOLDEN.pm
+
+
+For some reason .gitignore files are not ignored from the release
+I had to modify 
+
+/usr/local/share/perl/5.10.1.pm
+
+by hand to add:
+
+  return 1 if $file->name =~ /~$/;
+  return 1 if $file->name =~ /#/;
+
+* moving to Log::Log4perl
+
+log4 perl works. I got rid of the AUTOLOAD on my module. 
