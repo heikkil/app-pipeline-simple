@@ -46,7 +46,7 @@ sub new {
     croak "ERROR: pipeline config file not provided or not found in pwd"
 	if not $self->{config} and not $self->debug;
 
-    $self->configure_logging;
+    $self->_configure_logging;
 
     # done
     return $self;
@@ -57,7 +57,7 @@ sub new {
 # Configure the logger
 #-----------------------------------------------------------------
 
-sub configure_logging {
+sub _configure_logging {
     my $self = shift;
 
     my $logger_config = q(
@@ -812,6 +812,10 @@ Run this step and call the one(s).
 =head2 debug
 
 Run in debug mode and test teh configuration file
+
+=head2 logger
+
+Reference to the internal Log::Logger4perl object
 
 =head2 render
 
