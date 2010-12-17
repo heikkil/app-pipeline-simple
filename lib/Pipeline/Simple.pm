@@ -4,20 +4,31 @@
 # For copyright and disclaimer see Pipeline::Simple.pod.
 #
 # Lightweight workflow manager
-
+## no critic 
 package Pipeline::Simple;
 # ABSTRACT: Simple workflow manager
 
 use strict;
 use warnings;
+## use  critic 
 
 use Carp;
 use File::Basename;
+use File::Copy;
 use XML::Simple;
 use Data::Dumper;
 use Log::Log4perl qw(get_logger :levels :no_extra_logdie_message);
 
 
+#-----------------------------------------------------------------
+# Global variables
+#-----------------------------------------------------------------
+
+my $logger_level =   {
+    '-1' => $WARN,
+    '0'  => $INFO,
+    '1'  => $DEBUG,
+};
 
 #-----------------------------------------------------------------
 # new
@@ -31,8 +42,15 @@ sub new {
     # set all @args into this object with 'set' values
     my (%args) = (@args == 1 ? (value => $args[0]) : @args);
 
+    # do dir() first so that we know where to write the log
+    $self->dir($args{'dir'}) if defined $args{'dir'};
+
+    # start logging
+    $self->_configure_logging;
+
     foreach my $key (keys %args) {
 	next if $key eq 'config'; # this needs to be evaluated last
+	next if $key eq 'dir'; # done this
 	## no critic  
         no strict 'refs';
 	## use critic  
@@ -41,12 +59,13 @@ sub new {
     # this argument needs to be done last
     $self->config($args{'config'}) if defined $args{'config'};
 
+    # look into dir() if config not given
     $self->config($self->dir. '/config.xml')
 	if not $self->{config} and defined $self->dir and -e $self->dir. '/config.xml';
-    croak "ERROR: pipeline config file not provided or not found in pwd"
-	if not $self->{config} and not $self->debug;
 
-    $self->_configure_logging;
+    # die if no config found
+    $self->logger->fatal("pipeline config file not provided or not found in pwd")
+	if not $self->{config} and not $self->debug;
 
     # done
     return $self;
@@ -76,7 +95,7 @@ sub _configure_logging {
 	     name     => 'Log',
 	     filename => $self->dir. '/pipeline.log',
 	     mode     => 'append');
-	my $pattern =  '[%d %r] %p %L | %m%n';
+	my $pattern =  '%d [%r] %p %L | %m%n';
 	my $layout = Log::Log4perl::Layout::PatternLayout->new ($pattern);
         $to_file->layout ($layout);
 
@@ -84,8 +103,6 @@ sub _configure_logging {
     }
 
     $logger->level( $INFO );
-#    $logger->debug("Pipeline object id = ". $self->id);
-#    $logger->warn("Pipeline object id = ". $self->id);
 
     $self->logger($logger);
 
@@ -96,6 +113,19 @@ sub _configure_logging {
 #-----------------------------------------------------------------
 #
 #-----------------------------------------------------------------
+
+sub verbose {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{_verbose} = $value;
+
+        # verbose   =  -1    0     1   
+	# log level =  WARN INFO  DEBUG
+
+	$self->logger->level( $logger_level->{$value} );
+    }
+    return $self->{_verbose};
+}
 
 sub id {
     my ($self, $value) = @_;
@@ -199,8 +229,16 @@ sub logger {
 
 sub config {
     my ($self, $config) = @_;
+
     if ($config) {
-	croak "ERROR: config file [$config] not found in [". $self->dir. "/$config" . "] from [". `pwd`  unless -e "$config";
+	$self->logger->info("Using config file: ". $config);
+	# copy the pipeline config
+	if ($self->dir and not -e $self->dir."/config.xml") {
+	    copy $config, $self->dir."/config.xml";
+	    $self->logger->debug("Config [$config] file copied to: ".
+				  $self->dir."/config.xml");
+	}
+
 	$self->{config} = XMLin($config, KeyAttr => {step => 'id'});
 
 	# set pipeline start parameters
@@ -233,7 +271,7 @@ sub config {
 		$nexts->{$next->{id}}++ if $next->{id}; 
 	    } 	
 	}
-#	print Dumper $nexts;
+
 	# store starting points
 	foreach my $step ($self->each_step) {
 	    push @{$self->{next}}, { id => $step->id}
@@ -265,39 +303,8 @@ sub config {
 	    $self->{next} = undef;
 	    push @{$self->{next}}, { id => $real_start_id};
 	}
-
-#	print Dumper $self->{next};
-#	my @real_start_id = grep { $real_start_id eq $_->{id} } @{$self->each_next};
-#	my @real_start_id = @{$self->each_next};
-#	print Dumper $self->{next}, @real_start_id;
-#	$self->{next} = \@real_start_id  ;
-
-#	print Dumper $self->step('s1.2');
-	#print Dumper $self;
-	#exit;
     }
     return  $self->{config};
-}
-
-#-----------------------------------------------------------------
-#
-#-----------------------------------------------------------------
-
-sub log {
-    my ($self) = shift; 
-
-    croak "Need an output directory" unless $self->dir;
-
-    my $CONFIGFILE = 'config.xml';
-    my $LOGFILE = 'log.xml';
-
-    open my $CONF, '>', $CONFIGFILE;
-    print $CONF XMLout($self->{config});
-    $self->logger->info("Written the pipeline config file");
-
-    open my $LOG, '>', $LOGFILE;
-    print $LOG XMLout($self->{log});
-
 }
 
 #-----------------------------------------------------------------
@@ -345,12 +352,12 @@ sub next_step {
 }
 
 sub time {
-    my ($self) = @_;
+    my ($self) = shift;
     return scalar localtime;
 }
 
 sub run {
-    my ($self) = @_;
+    my ($self) = shift;
 
     croak "Need an output directory" unless $self->dir;
 
@@ -359,8 +366,6 @@ sub run {
 
     chdir $self->{dir};
 
-    # idea: launch separate process for each step using Parallel::Forkmanager
-
     #
     # Determine where in the pipeline to start
     #
@@ -368,22 +373,31 @@ sub run {
     my @steps; # array of next execution points
 
     # User has given a starting point id
-    if ($self->{start}) {
-	push @steps, $self->{start};
+    if ($self->start) {
+	push @steps, $self->start;
 	$self->logger->info("Starting at [". $self->start. "]" );
     }
     # determine where the execution of the pipeline was interrupted
-    elsif (-e $self->dir. "/log.xml") {
-	$self->{log} = XMLin('log.xml', KeyAttr => {step => 'id'});	
-	#print Dumper $self->{log}, "----------------------------------";
-	for my $step_id (keys %{$self->{log}}) {
-	    push @steps, $step_id
-		if not defined $self->{log}->{$step_id}->{end_time};
+    elsif (-e $self->dir. "/pipeline.log") {
+	
+	open my $LOG, '<', $self->dir. "/pipeline.log"
+	    or $self->logger->fatal("Can't open ". $self->dir. 
+				    "/pipeline.log for reading: $!");
+	my $in_execution;
+	while (<$LOG>) {
+	    next unless /\[(\d+)\]/;
+	    undef $in_execution; # start of a new run
+	    next unless /\| (Running|Finished) +\[(\w+)\]/;
+	    $in_execution->{$2}++ if $1 eq 'Running';
+	    delete $in_execution->{$2} if $1 eq 'Finished';
+	    print Dumper $in_execution;
 	}
+	@steps = sort keys %$in_execution;
 	if (@steps) {
 	    $self->logger->info("Continuing at ". $steps[0] );
 	} else {
-	    $self->logger->warn("Pipeline is already finished. Define a start to rerun" );
+	    $self->logger->warn("Pipeline is already finished. ".
+				"Drop -config and define a start to rerun" );
 	    exit 0;
 	}
     } else { 	# or start from the beginning
@@ -391,8 +405,6 @@ sub run {
 	$self->logger->info("Starting at [". $steps[0] . "]");
     }
     
-#    print Dumper \@steps; exit;
-
     #
     # Execute one step at a time
     #
@@ -405,17 +417,12 @@ sub run {
 	foreach my $arg (@{$step->{arg}}) {
 	    next unless $arg->{key} eq 'in';
 	    next unless $arg->{type} =~ /file|dir/ ;
-#	    croak "Can not read input at [". $arg->{value}. "]"
-#		unless -e $arg->{value};
 	}
 
 	my $command = $step->render;
-	$self->{log}->{$step_id}->{action} = $command;
-	$self->{log}->{$step_id}->{start_time} = $self->time;
 	$self->logger->info("Running     [". $step->id . "] $command" );
 	`$command`;
 	$self->logger->info("Finished    [". $step->id . "]" );
-	$self->{log}->{$step_id}->{end_time} = $self->time;
 
 	# Add next step(s) to the execution queue unless
 	# the user has asked to stop here
@@ -731,6 +738,15 @@ This software is provided "as is" without warranty of any kind.
 
 Contructor
 
+=head2 verbose
+
+Control logging output. Defaults to 0.
+
+Setting verbose sets the logging level:
+
+  verbose   =  -1    0     1    
+  log level =>  WARN INFO  DEBUG
+
 =head2 config
 
 Read in the named config file.
@@ -741,7 +757,7 @@ ID of the step
 
 =head2 description
 
-Verbose desctiption of the step
+Verbose description of the step
 
 =head2 name
 
@@ -777,10 +793,6 @@ The ID of the step to start the execution
 
 The ID of the step to stop the execution
 
-=head2 log
-
-Save config and log of steps into file.
-
 =head2 dir
 
 Working directory where all files are stored.
@@ -811,7 +823,7 @@ Run this step and call the one(s).
 
 =head2 debug
 
-Run in debug mode and test teh configuration file
+Run in debug mode and test the configuration file
 
 =head2 logger
 

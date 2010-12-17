@@ -70,15 +70,20 @@ Type of the optional input. Values?
 
 Name of the step to start or restart the pipeline.
 
-Fails if the prerequisites of the step are not met, i.e. the input file(s) does not exist.
+Fails if the prerequisites of the step are not met, i.e. the input
+file(s) does not exist.
 
 =item B<--stop> string
 
 Name of the step to stop the pipeline. Defaults to the last step.
 
+=item B<--verbose> int
 
+Verbosity level. Defaults to zero. This will get translated to
+Log::Log4perl levels: 
 
-
+  verbose   =  -1    0     1     2
+  log level =  DEBUG INFO  WARN  ERROR
 
 
 =cut
@@ -110,7 +115,7 @@ our $ITYPE  =  '';
 #our $CONTINUE; # not implemented yet
 our $START  =  '';
 our $STOP  =  '';
-our $ERROR;
+our $VERBOSE;
 
 GetOptions(
            'v|version'     => sub{ print PROGRAMME_NAME, ", version ", VERSION, "\n";
@@ -124,11 +129,10 @@ GetOptions(
 #	   'continue'      => \$CONTINUE,
 	   'start:s'       => \$START,
 	   'stop:s'        => \$STOP,
+	   'verbose:i'     => \$VERBOSE,
            'h|help|?'      => sub{ exec('perldoc',$0); exit(0) },
            );
 
-
-#croak "Needed arguments --input and --itype" unless $INPUT and $ITYPE;
 
 my %args;
 $args{config} = $CONFIG if $CONFIG;
@@ -137,10 +141,9 @@ $args{input} = $INPUT if $INPUT;
 $args{itype} = $ITYPE if $ITYPE;
 $args{start} = $START if $START;
 $args{stop}  = $STOP  if $STOP;
-#use Data::Dumper; print Dumper \%args; exit;
+$args{verbose} = $VERBOSE  if $VERBOSE;
 
-unless (-e 'config.xml' or $CONFIG ) {
-    $ERROR = 1;
+unless (-e "$DIR/config.xml" or $CONFIG ) {
     croak "ERROR: Need either explicit config file or ".
 	"it has to be found the working directory\n"
 }
@@ -151,12 +154,3 @@ print $p->graphviz and exit if $GRAPHVIZ;
 $p->stringify and exit if $DEBUG;
 
 $p->run();
-
-#use Data::Dumper; print Dumper $p;
-
-END {
-
-    exit if $GRAPHVIZ or $DEBUG or $ERROR;
-    $p->log;
-
-}

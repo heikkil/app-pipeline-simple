@@ -36,4 +36,16 @@ by hand to add:
 * moving to Log::Log4perl
 
 log4 perl works. I got rid of the AUTOLOAD on my module. 
->>>>>>> log
+
+
+    # idea: launch separate process for each step using Parallel::Forkmanager
+    #       or a batch submission system
+
+* some workflow engines
+
+    * http://www.taverna.org.uk/
+    * http://www.knime.org/
+    * https://kepler-project.org/
+    * Mobyle http://lipm-bioinfo.toulouse.inra.fr/biomoby/PlayMOBY/
+    * http://www.ailab.si/orange/
+    * http://ergatis.sourceforge.net/

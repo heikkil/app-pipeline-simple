@@ -12,11 +12,11 @@ sub test_input_file {
 
 diag( "Testing Pipeline::Simple" );
 
-# debug ignores missing config file
-my $p = Pipeline::Simple->new(debug => 1);
+# debug ignores the missing config file
+my $p = Pipeline::Simple->new(debug => 1, verbose => -1);
 ok ref($p) eq 'Pipeline::Simple', 'new()';
 
-my $s2 = Pipeline::Simple->new(id=> 'S2', debug => 1);
+my $s2 = Pipeline::Simple->new(id=> 'S2', debug => 1, verbose => -1);
 ok ref($s2) eq 'Pipeline::Simple', 'new()';
 
 # method testing
@@ -43,7 +43,8 @@ can_ok 'Pipeline::Simple', @methods;
 
 # reading in a configuration
 my $pl = Pipeline::Simple->new
-   (config=>test_input_file('string_manipulation.xml'));
+   (config=>test_input_file('string_manipulation.xml'),
+    verbose=> -1);
 $pl->dir('/tmp/pl');
 $pl->stringify;
 #$pl->each_step;
