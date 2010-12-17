@@ -11,12 +11,12 @@ B<pipeline.pl> [B<--version> | [B<-?|-h|--help>] | [B<-g|--debug>] |
    B<[-i|--input> string| B<[-it|--itype> string |
    [B<[--start> value] | [B<[--stop> value]
 
-=head1 DESCRIPTION
+  pipeline.pl -config t/data/string_manipulation.xml -d /tmp/test
 
+=head1 DESCRIPTION
 
 For internal details of the pipeline, check the documentation for the
 perl module L<Pipeline::Simple>.
-
 
 =head1 OPTIONS
 

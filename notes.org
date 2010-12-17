@@ -21,6 +21,7 @@ http://www.polettix.it/perlettix/id_dist-zilla
 Dag Olden's bundle and examples:
 
 http://search.cpan.org/~dagolden/Dist-Zilla-PluginBundle-DAGOLDEN-0.013/lib/Dist/Zilla/PluginBundle/DAGOLDEN.pm
+http://search.cpan.org/~jquelin/Dist-Zilla-PluginBundle-JQUELIN-1.101620/lib/Dist/Zilla/PluginBundle/JQUELIN.pm
 
 
 For some reason .gitignore files are not ignored from the release
@@ -36,7 +37,7 @@ by hand to add:
 * moving to Log::Log4perl
 
 log4 perl works. I got rid of the AUTOLOAD on my module. 
-
+http://www.perl.com/pub/2002/09/11/log4perl.html
 
     # idea: launch separate process for each step using Parallel::Forkmanager
     #       or a batch submission system
@@ -49,3 +50,7 @@ log4 perl works. I got rid of the AUTOLOAD on my module.
     * Mobyle http://lipm-bioinfo.toulouse.inra.fr/biomoby/PlayMOBY/
     * http://www.ailab.si/orange/
     * http://ergatis.sourceforge.net/
+
+* todo
+
+make steps wait for the the previous output if it is missing

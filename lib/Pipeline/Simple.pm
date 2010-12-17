@@ -589,7 +589,7 @@ improvements:
 * Enforce the storing of all intermediary steps in a file. 
 
   This is for clarity, accountability and to enable arbitrarily big
-  data sets. Pipeline can contain a independent step that removes
+  data sets. Pipeline can contain an independent step that removes
   intermediate files if so required.
 
 * Naming of each step.
@@ -597,7 +597,7 @@ improvements:
   This is to make it possible to stop, restart, and restart at any
   intermediate step after adjusting pipeline parameters.
 
-* detailed logging (needs redoing)
+* detailed logging
 
   To keep track of all runs of the pipeline.
 
@@ -708,9 +708,9 @@ executable called by the step.
 
 Finally, the C<step> tag can contain one or more C<next> tags that
 tell the pipeline the ID of the next step in the execution. Typically,
-these steps depends on the previous step for input.
+these steps depends on the previous step for input. 
 
-Practicies that are completely bonkers, like spaces in file names, are
+Practices that are completely bonkers, like spaces in file names, are
 not supported.
 
 =head1 ACKNOWLEDGMENTS
