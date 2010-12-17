@@ -1,6 +1,6 @@
 Revision history for Pipeline::Simple
 
-0.5.2    
+0.5.2    Fri Dec 17 21:39:40 2010
 	 Log::Log4perl use exclusively, no more log.xml
 
 0.5.1	 Wed Dec 15 21:48:34 2010
