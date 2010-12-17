@@ -1,5 +1,8 @@
 Revision history for Pipeline::Simple
 
+0.5.2    
+	 Log::Log4perl use exclusively, no more log.xml
+
 0.5.1	 Wed Dec 15 21:48:34 2010
 	 Internal code and file reorganizations:
 	 - Using Dist::Zilla to manage the code base
