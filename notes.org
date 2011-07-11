@@ -52,5 +52,5 @@ http://www.perl.com/pub/2002/09/11/log4perl.html
     * http://ergatis.sourceforge.net/
 
 * todo
-
+check that interactive input works
 make steps wait for the the previous output if it is missing

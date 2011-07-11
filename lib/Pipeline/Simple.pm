@@ -10,6 +10,7 @@ package Pipeline::Simple;
 
 use strict;
 use warnings;
+use autodie;
 ## use  critic 
 
 use Carp;
@@ -56,6 +57,9 @@ sub new {
 	## use critic  
         $self->$key($args{$key});
     }
+    # delayed to find out verbosity level
+    $self->logger->info("Logging started");
+
     # this argument needs to be done last
     $self->config($args{'config'}) if defined $args{'config'};
 
@@ -105,7 +109,7 @@ sub _configure_logging {
     $logger->level( $INFO );
 
     $self->logger($logger);
-
+    
 }
 
 
@@ -232,14 +236,19 @@ sub config {
 
     if ($config) {
 	$self->logger->info("Using config file: ". $config);
+	my $pwd = `pwd`; chomp $pwd;
+	$self->logger->debug("pwd: $pwd");
+	die unless -e $config;
 	# copy the pipeline config
+
 	if ($self->dir and not -e $self->dir."/config.xml") {
+	    #print "--->", `pwd`, "\n";
 	    copy $config, $self->dir."/config.xml";
 	    $self->logger->debug("Config [$config] file copied to: ".
 				  $self->dir."/config.xml");
 	}
 
-	$self->{config} = XMLin($config, KeyAttr => {step => 'id'});
+	$self->{config} = XMLin($self->dir."/config.xml", KeyAttr => {step => 'id'});
 
 	# set pipeline start parameters
 	$self->id('s0');
@@ -316,9 +325,9 @@ sub dir {
 	mkdir $dir unless -e $dir and -d $dir;
 	croak "Can not create project directory $dir"
             unless -e $dir and -d $dir;
-	$self->{dir} = $dir;
+	$self->{_dir} = $dir;
     }
-    $self->{dir};
+    $self->{_dir};
 }
 
 #-----------------------------------------------------------------
@@ -338,33 +347,19 @@ sub each_step {
     @{shift->{steps}};
 }
 
-sub next_step {
-    my ($self) = @_;
 
-    # check for the log here to restart execution half way through
-
-    # at this stage, only one starting step
-    # find the first one: not referenced by any other steps in the pipeline
-
-    for my $id (sort keys %{$self->{config}->{step}}) {
-	
-    }    
-}
-
-sub time {
-    my ($self) = shift;
-    return scalar localtime;
-}
 
 sub run {
     my ($self) = shift;
-
-    croak "Need an output directory" unless $self->dir;
+    unless ($self->dir) {
+	$self->logger->fatal("Need an output directory to run()");
+	croak "Need an output directory to run()";
+    }
 
     ###
     # check for input file and warn if not  found
 
-    chdir $self->{dir};
+    chdir $self->{_dir};
 
     #
     # Determine where in the pipeline to start
@@ -378,37 +373,53 @@ sub run {
 	$self->logger->info("Starting at [". $self->start. "]" );
     }
     # determine where the execution of the pipeline was interrupted
-    elsif (-e $self->dir. "/pipeline.log") {
-	
+    else {	
 	open my $LOG, '<', $self->dir. "/pipeline.log"
 	    or $self->logger->fatal("Can't open ". $self->dir. 
 				    "/pipeline.log for reading: $!");
 	my $in_execution;
+
+	# take only the previous run
+	my @log;
 	while (<$LOG>) {
+	    push @log, $_;
+	    @log = () if /Run started/;
+	    #print scalar @log, "\n";
+	}
+#	print "========================\n";
+#	print "@log";
+	for (@log) {
 	    next unless /\[(\d+)\]/;
 	    undef $in_execution; # start of a new run
 	    next unless /\| (Running|Finished) +\[(\w+)\]/;
 	    $in_execution->{$2}++ if $1 eq 'Running';
 	    delete $in_execution->{$2} if $1 eq 'Finished';
-	    print Dumper $in_execution;
+	   # print Dumper $in_execution;
 	}
+
 	@steps = sort keys %$in_execution;
-	if (@steps) {
-	    $self->logger->info("Continuing at ". $steps[0] );
-	} else {
+	if (not @steps and scalar @log > 2) {
 	    $self->logger->warn("Pipeline is already finished. ".
-				"Drop -config and define a start to rerun" );
+				"Drop -config and define the start step to rerun" );
 	    exit 0;
 	}
-    } else { 	# or start from the beginning
-	@steps = $self->each_next;
-	$self->logger->info("Starting at [". $steps[0] . "]");
+	elsif (@steps) {
+	    $self->logger->info("Continuing at ". $steps[0] );
+	} else {
+	    # start from beginning
+	    @steps = $self->each_next;
+	    $self->logger->info("Starting at [". $steps[0] . "]");
+	}
     }
-    
+
     #
     # Execute one step at a time
     #
+
+    $self->logger->info("Run started");
+
     while (my $step_id = shift @steps) {
+	$self->logger->debug("steps: [". join (", ", @steps). "]");
 	my $step = $self->step($step_id);
 	croak "ERROR: Step [$step_id] does not exist" unless $step;
 	# check that we got an object
@@ -426,10 +437,14 @@ sub run {
 
 	# Add next step(s) to the execution queue unless
 	# the user has asked to stop here
-	push @steps, $step->each_next 
-	    unless defined $self->{stop} and $step_id eq $self->{stop};
+	if ( defined $self->{_stop} and $step->id eq $self->{_stop} ) {
+	    $self->logger->info("Stopping at [". $step->id . "]" );
+	} else {
+	    push @steps, $step->each_next 	    
+	}
 
     }
+    1;
 }
 
 
@@ -450,7 +465,7 @@ sub render {
 	$str .=  '/' unless substr($str, -1, 1) eq '/' ;
     }
     # program name
-    $str .=  $step->{name};
+    $str .=  $step->{name} || '';
 
     # arguments
     my $endstr = '';
@@ -491,6 +506,7 @@ sub render {
 sub stringify {
     my ($self) = @_;
 
+    my @res;
     # add checks for duplicated ids
 
     # add check for a next pointer that leads nowhere
@@ -499,17 +515,18 @@ sub stringify {
     my $outputs; #hashref for storing input and output filenames 
     while (my $step_id = shift @steps) {
 	my $step = $self->step($step_id);
-	print $step->id, "\n\t", $step->render('4display'), " # ";
-	map { print "->", $_, " " } $step->each_next;
+	push @res, $step->id, "\n";
+	push @res, "\t", $step->render('4display'), " # ";
+	map { push @res, "->", $_, " " } $step->each_next;
 
 	push @steps, $step->each_next;
 
-#	print "\n"; print Dumper $outputs;
 	foreach my $arg (@{$step->{arg}}) {
 	    if ($arg->{key} eq 'out') {
 		for ($step->each_next) {
-		    print "\n\t", "WARNING: Output file [".$arg->{value}."] is read by [",
-		    $outputs->{$arg->{value}}, "] and [$_]" 
+		    push @res, "\n\t", "WARNING: Output file [". 
+			$arg->{value}."] is read by [",
+			$outputs->{$arg->{value}}, "] and [$_]" 
 		    if  $outputs->{$arg->{value}};
 
 		    $outputs->{$arg->{value}} = $_;
@@ -517,15 +534,15 @@ sub stringify {
 	    }
 	    elsif ($arg->{key} eq 'in' and $arg->{type} ne 'redir') {
 		my $prev_step_id = $outputs->{$arg->{value}} || '';
-		print "\n\t", "ERROR: Output from the previous step is not [",
-		    $arg->{value} || '', "]" 
+		push @res, "\n\t". "ERROR: Output from the previous step is not [".
+		    ($arg->{value} || ''). "]" 
 		    if $prev_step_id ne $step->id and $prev_step_id eq $self->id;
 	    }
 	    # test for steps not refencesed by other steps (missing next tag)
 	}
-	print "\n";
+	push @res, "\n";
     }
-    #print "\n"; print Dumper $outputs;
+    return join '', @res;
 }
 
 
@@ -548,7 +565,7 @@ sub graphviz {
     }
 
     foreach my $step ($self->each_step) {
-	$g->add_node($step->id, label => $step->id. " : ". $step->name );
+	$g->add_node($step->id, label => $step->id. " : ". ($step->name||'') );
 	if ($step->each_next) {
 	    map {  $g->add_edge($step->id => $_, label => $step->render('display') ) }
 		$step->each_next;
@@ -808,14 +825,6 @@ Return an array of steps after this one.
 =head2 each_step
 
 Return all steps.
-
-=head2 next_step
-
-Deprecated. Superceded by each_next()
-
-=head2 time
-
-Return timestamp.
 
 =head2 run
 
