@@ -1,3 +1,4 @@
+# -*-Perl-*- mode (for emacs)
 use Test::More tests => 7;
 use Data::Dumper;
 use File::Spec;
