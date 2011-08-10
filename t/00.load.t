@@ -46,24 +46,3 @@ my @methods = qw(id name description  next_id config add
 	       );
 can_ok 'Pipeline::Simple', @methods;
 
-
-# # Various ways to say "ok"
-#     ok($got eq $expected, $test_name);
-#
-#     is  ($got, $expected, $test_name);
-#     isnt($got, $expected, $test_name);
-#
-#     # Rather than print STDERR "# here's what went wrong\n"
-#     diag("here's what went wrong");
-#
-#     like  ($got, qr/expected/, $test_name);
-#     unlike($got, qr/expected/, $test_name);
-#
-#     cmp_ok($got, '==', $expected, $test_name);
-#
-#      can_ok($module, @methods);
-#     isa_ok($object, $class);
-#
-#     pass($test_name);
-#     fail($test_name);
-  
