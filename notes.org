@@ -54,3 +54,25 @@ http://www.perl.com/pub/2002/09/11/log4perl.html
 * todo
 check that interactive input works
 make steps wait for the the previous output if it is missing
+
+* Philosophy
+
+An analysis pipeline is composed of individual programs the are
+executed in order and read in initial data, options and output from
+previous steps. A good pipeline creates a powerful and flexible
+program in its own right.
+
+Common tools to code a pipeline or a workflow, are UNIX shell[1] and
+GNU make[2]. Both have their advantages but neither is ideal.
+
+|              | *shell*             | *make*               |
+|--------------+---------------------+----------------------|
+| main purpose | general programming | source code building |
+| syntax       | powerful            | obscure, error prone |
+|              |                     |                      |
+
+Needed:
++ clear, specific syntax
++ store intermediate steps in files
++ stop/restart at any step
++ keep a detailed log
