@@ -234,7 +234,7 @@ sub config {
     my ($self, $config) = @_;
 
     if ($config) {
-	$self->logger->info("Using config file: ". $config);
+	$self->logger->info("Using config file: [ ". $config. " ]");
 	my $pwd = `pwd`; chomp $pwd;
 	$self->logger->debug("pwd: $pwd");
 	die unless -e $config;
@@ -395,29 +395,29 @@ sub run {
 	}
 #	print "========================\n";
 	print "@log";
-# disable log analysis for the time being
-# 	for (@log) {
-# 	    next unless /\[(\d+)\]/;
-# 	    undef $in_execution; # start of a new run
-# 	    next unless /\| (Running|Finished) +\[(\w+)\]/;
-# 	    $in_execution->{$2}++ if $1 eq 'Running';
-# 	    delete $in_execution->{$2} if $1 eq 'Finished';
-# 	   print Dumper $in_execution;
-# 	}
 
-#	@steps = sort keys %$in_execution;
-#	if (scalar @steps == 0 and scalar @log > 2) {
-#	    $self->logger->warn("Pipeline is already finished. ".
-#				"Drop -config and define the start step to rerun" );
-#	    exit 0;
-#	}
-#	elsif (@steps) {
-#	    $self->logger->info("Continuing at ". $steps[0] );
-#	} else {
+	for (@log) {
+	    next unless /\[(\d+)\]/;
+	    undef $in_execution; # start of a new run
+	    next unless /\| (Running|Finished) +\[(\w+)\]/;
+	    $in_execution->{$2}++ if $1 eq 'Running';
+	    delete $in_execution->{$2} if $1 eq 'Finished';
+	   print Dumper $in_execution;
+	}
+
+	@steps = sort keys %$in_execution;
+	if (scalar @steps == 0 and scalar @log > 3) {
+	    $self->logger->warn("Pipeline is already finished. ".
+				"Drop -config and define the start step to rerun" );
+	    exit 0;
+	}
+	elsif (@steps) {
+	    $self->logger->info("Continuing at ". $steps[0] );
+	} else {
 	    # start from beginning
-	@steps = $self->each_next;
-	$self->logger->info("Starting at [". $steps[0] . "]");
-#	}
+	    @steps = $self->each_next;
+	    $self->logger->info("Starting at [". $steps[0] . "]");
+	}
     }
     else {
 	# start from beginning
@@ -570,6 +570,8 @@ sub graphviz {
     my $self = shift;
     my $function = shift;
 
+    $self->logger->info("Graphing started. Redirect to a dot file" );
+
     require GraphViz;
     my $g= GraphViz->new;
 
@@ -597,6 +599,8 @@ sub graphviz {
 
     }
     return $g->as_dot;
+
+    $self->logger->info("Graphing done. Process the dot file (e.g. dot -Tpng p.dot|display " );
 
 }
 
