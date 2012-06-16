@@ -40,8 +40,6 @@ ok $s2->dir('data'), 'dir()';
 
 #ok $s2->each_step, 'each_step';
 
-
-
 my @methods = qw(id name description next_id config add
 		 run input itype
 	       );

@@ -19,7 +19,7 @@ my $dir = "/tmp/pl$$";
 
 my $pl = Pipeline::Simple->new
    (config=>test_input_file('string_manipulation.yml'),
-    dir=>$dir, verbose=> -1);
+    dir=>$dir, verbose=> 0);
 #    verbose=> 1);
 #print Dumper $pl;
 #print Dumper $pl->next;
@@ -37,6 +37,6 @@ ok $pl->start('s3'), 'start()';
 ok $pl->stop('s4'), 'stop()';
 
 END {
-    #print "workdir = $dir\n";
-    `rm -rf $dir` if $pl->verbose <0;
+    print "workdir = $dir\n";
+    #`rm -rf $dir` if $pl->verbose <0;
 }

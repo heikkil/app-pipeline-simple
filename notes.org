@@ -1,7 +1,51 @@
-* note competion
+* note competition
 
-http://gmod.org/wiki/DIYA !
+** DIYA
+
+- http://gmod.org/wiki/DIYA
 Tue Apr 27 15:48:29 AST 2010
+
+  - Andrew C. Stewart1, Brian Osborne2 and Timothy D. Read, DIYA: a
+bacterial annotation pipeline for any genomics lab. Vol. 25 no. 7
+2009, pages 962–963 doi:10.1093/bioinformatics/btp097
+
+** bpipe
+
+- Sadedin S, Pope B & Oshlack A, Bpipe: A Tool for Running and
+  Managing Bioinformatics Pipelines, Bioinformatics, Vol. 28 no. 11
+  2012, pages 1525–1526
+
+
+By turning your shell scripts into Bpipe scripts, here are some of the features you can get:
+
+- Simple definition of tasks to run - Bpipe runs shell commands almost
+  as-is - no programming required.
+- Transactional management of tasks - commands that fail get outputs
+  cleaned up, log files saved and the pipeline cleanly aborted. No out
+  of control jobs going crazy.
+- Easy Restarting of Jobs - when a job fails cleanly restart from the point of failure.
+- Automatic Connection of Pipeline Stages - Bpipe manages the file
+  names for input and output of each stage in a systematic way so that
+  you don't need to think about it. Removing or adding new stages
+  "just works" and never breaks the flow of data.
+- Easy Parallelism - Bpipe makes it simple to split jobs into many
+  pieces and run them all in parallel whether on a cluster or locally
+  on your own machine
+- Audit Trail - Bpipe keeps a journal of exactly which commands
+  executed and what their inputs and outputs were.
+- Integration with Cluster Resource Managers - if you use Torque PBS,
+  Oracle Grid Engine or Platform LSF then Bpipe will make your life
+  easier by allowing pure Bpipe scripts to run on your cluster
+  virtually unchanged from how you run them locally.
+- Notifications by Email or Instant Message - Bpipe can send you
+  alerts to tell you when your pipeline finishes or even as each stage
+  completes.
+- See how Bpipe compares to similar tools:
+  https://code.google.com/p/bpipe/wiki/ComparisonToWorkflowTools
+
+** Ruffus
+  - Goodstadt,L. (2010) Ruffus: a lightweight Python library for
+    computational pipelines. Bioinformatics, 26, 2778–2779.
 
 * how to release using dzil
 
@@ -62,8 +106,9 @@ executed in order and read in initial data, options and output from
 previous steps. A good pipeline creates a powerful and flexible
 program in its own right.
 
-Common tools to code a pipeline or a workflow, are UNIX shell[1] and
-GNU make[2]. Both have their advantages but neither is ideal.
+Common tools to code a pipeline or a workflow, are UNIX shell,
+typically BASH[1] and GNU make[2]. Both have their advantages but
+neither is ideal.
 
 |              | *shell*             | *make*               |
 |--------------+---------------------+----------------------|
@@ -71,8 +116,17 @@ GNU make[2]. Both have their advantages but neither is ideal.
 | syntax       | powerful            | obscure, error prone |
 |              |                     |                      |
 
+
 Needed:
 + clear, specific syntax
 + store intermediate steps in files
 + stop/restart at any step
 + keep a detailed log
++ stop pipeline on failure
+
+* Footnotes
+
+[1] http://www.gnu.org/software/bash/
+
+[2] http://www.gnu.org/software/make/
+
