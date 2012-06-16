@@ -11,7 +11,7 @@ B<pipeline.pl> [B<--version> | [B<-?|-h|--help>] | [B<-g|--debug>] |
    B<[-i|--input> string| B<[-it|--itype> string |
    [B<[--start> value] | [B<[--stop> value]
 
-  pipeline.pl -config t/data/string_manipulation.xml -d /tmp/test
+  pipeline.pl -config t/data/string_manipulation.yml -d /tmp/test
 
 =head1 DESCRIPTION
 
@@ -42,19 +42,19 @@ Print out a graphviz dot file.
 
 Example one liner to display a graph of the pipeline: 
 
-  pipeline.pl -config t/data/string_manipulation.xml -graph > \ 
+  pipeline.pl -config t/data/string_manipulation.yml -graph > \ 
   /tmp/p.dot; dot -Tpng /tmp/p.dot| display
 
 =item B<-c | --config> string
 
-Path to the XML config file. Required.
+Path to the config file. Required.
 
 =item B<-d | --directory> string
 
 Directory to keep all files. Required.?
 
 If the directory does not exist, it will be created and a copy of the
-config file will be copied in it under name C<config.xml>. For
+config file will be copied in it under name C<config.yml>. For
 subsequent runs, the config file can be omitted from the command
 line. This makes it easy to adjust the parameters.
 
@@ -143,7 +143,7 @@ $args{start} = $START if $START;
 $args{stop}  = $STOP  if $STOP;
 $args{verbose} = $VERBOSE  if $VERBOSE;
 
-unless (-e "$DIR/config.xml" or $CONFIG ) {
+unless (-e "$DIR/config.yml" or $CONFIG ) {
     croak "ERROR: Need either explicit config file or ".
 	"it has to be found the working directory\n"
 }
