@@ -378,7 +378,7 @@ sub run {
 	$self->logger->info("Starting at [". $self->start. "]" );
     }
     # determine if and where the execution of the pipeline was interrupted
-    else {
+    elsif (-e $self->dir. "/pipeline.log") {
 	open my $LOG, '<', $self->dir. "/pipeline.log"
 	    or $self->logger->fatal("Can't open ". $self->dir.
 				    "/pipeline.log for reading: $!");
@@ -417,11 +417,17 @@ sub run {
 	$self->logger->info("Starting at [". $steps[0] . "]");
 #	}
     }
+    else {
+	# start from beginning
+	@steps = $self->each_next;
+	$self->logger->info("Starting at [". $steps[0] . "]");
+
+    }
 
     #
     # Execute one step at a time
     #
-    
+
     $self->logger->info("Run started");
 
     while (my $step_id = shift @steps) {
