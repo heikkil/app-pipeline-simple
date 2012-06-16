@@ -374,7 +374,7 @@ sub run {
 
     # User has given a starting point id
     if ($self->start) {
-	$self->logger->info("Start point: user input [$self->start]" );
+	$self->logger->info("Start point: user input [". $self->start. "]" );
 	push @steps, $self->start;
 	$self->logger->info("Starting at [". $self->start. "]" );
     }
@@ -402,7 +402,7 @@ sub run {
 	    next unless /\| (Running|Finished) +\[(\w+)\]/;
 	    $in_execution->{$2}++ if $1 eq 'Running';
 	    delete $in_execution->{$2} if $1 eq 'Finished';
-	   print Dumper $in_execution;
+	    #print Dumper $in_execution;
 	}
 
 	@steps = sort keys %$in_execution;
