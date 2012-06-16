@@ -380,7 +380,7 @@ sub run {
     }
     # determine if and where the execution of the pipeline was interrupted
     elsif (-e $self->dir. "/pipeline.log") {
-	$self->logger->info("Start point: consult the log" );
+	$self->logger->info("Start point: consult the log [". $self->dir. "/pipeline.log ]");
 	open my $LOG, '<', $self->dir. "/pipeline.log"
 	    or $self->logger->fatal("Can't open ". $self->dir.
 				    "/pipeline.log for reading: $!");
