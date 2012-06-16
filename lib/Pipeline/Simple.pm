@@ -374,11 +374,13 @@ sub run {
 
     # User has given a starting point id
     if ($self->start) {
+	$self->logger->info("Start point: user input [$self->start]" );
 	push @steps, $self->start;
 	$self->logger->info("Starting at [". $self->start. "]" );
     }
     # determine if and where the execution of the pipeline was interrupted
     elsif (-e $self->dir. "/pipeline.log") {
+	$self->logger->info("Start point: consult the log" );
 	open my $LOG, '<', $self->dir. "/pipeline.log"
 	    or $self->logger->fatal("Can't open ". $self->dir.
 				    "/pipeline.log for reading: $!");
@@ -419,6 +421,7 @@ sub run {
     }
     else {
 	# start from beginning
+	$self->logger->info("Start point: start from beginning" );
 	@steps = $self->each_next;
 	$self->logger->info("Starting at [". $steps[0] . "]");
 
