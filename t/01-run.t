@@ -38,5 +38,5 @@ ok $pl->stop('s4'), 'stop()';
 
 END {
     print "workdir = $dir\n";
-    #`rm -rf $dir` if $pl->verbose <0;
+    `rm -rf $dir` if $pl->verbose <0;
 }
