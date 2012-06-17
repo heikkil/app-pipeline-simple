@@ -732,9 +732,8 @@ not supported.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2012, Heikki Lehvaslaiho, KAUST (King Abdullah
+Copyright (c) 2010, 2011, 2012, Heikki Lehvaslaiho, KAUST (King Abdullah
 University of Science and Technology)
-All Rights Reserved.
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
@@ -745,8 +744,7 @@ See F<http://dev.perl.org/licenses/artistic.html>
 
 This software is provided "as is" without warranty of any kind.
 
-
-=head1 SUBRUTINES
+=head1 SUBROUTINES
 
 =head2 new
 
