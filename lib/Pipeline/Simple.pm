@@ -11,7 +11,7 @@ package Pipeline::Simple;
 use strict;
 use warnings;
 use autodie;
-## use  critic 
+## use  critic
 
 use Carp;
 use File::Basename;
@@ -88,7 +88,7 @@ sub _configure_logging {
         log4perl.appender.Screen         = Log::Log4perl::Appender::Screen
         log4perl.appender.Screen.stderr  = 1
         log4perl.appender.Screen.layout  = Log::Log4perl::Layout::SimpleLayout
-    );#q
+    );
 
     Log::Log4perl->init_once( \$logger_config );
     my $logger = Log::Log4perl->get_logger("Pipeline");
@@ -253,7 +253,7 @@ sub config {
 	$self->id('s0');
 	$self->name($self->{config}->{name} || '');
 	$self->description($self->{config}->{description} || '');
-#	print Dumper $self;
+
 	# go through all steps once
 	my $nexts;		# hashref for finding start point(s)
 	for my $id (sort keys %{$self->{config}->{steps}}) {
@@ -266,31 +266,19 @@ sub config {
 	    # create the list of all steps to be used by each_step()
 	    $step->id($id);
 	    push @{$self->{steps}}, $step;
-#	print Dumper $self;
-	    #turn a next hashref into an arrayref, (fixing XML::Simple complication)
-#	    unless ( ref($step->{next}) eq 'ARRAY' ) {
-#		my $next = $step->{next};
-#		delete $step->{next};
-#		push @{$step->{next}}, $next;
-#	    }
-
-#	    print Dumper $step;
 
 	    # a step without a parent is a starting point, store those with children
 	    foreach my $next (@{$step->{next}}) {
-#		print Dumper $step->id, $next;
 		$nexts->{$next}++;
 	    }
 	}
-#	print Dumper $self;
-#	print Dumper $nexts;exit;
 
 	# store starting points, not listed as children
 	foreach my $step ($self->each_step) {
 	    push @{$self->{next}}, $step->id
 	       unless $nexts->{$step->id}
 	}
-#	print Dumper $self; exit;
+
 	#run needs to fail if starting input values are not set!
 
 	# insert the startup value into the appropriate starting step
@@ -380,7 +368,8 @@ sub run {
     }
     # determine if and where the execution of the pipeline was interrupted
     elsif (-e $self->dir. "/pipeline.log") {
-	$self->logger->info("Start point: consult the log [". $self->dir. "/pipeline.log ]");
+	$self->logger->info("Start point: consult the log [".
+			    $self->dir. "/pipeline.log ]");
 	open my $LOG, '<', $self->dir. "/pipeline.log"
 	    or $self->logger->fatal("Can't open ". $self->dir.
 				    "/pipeline.log for reading: $!");
@@ -391,10 +380,7 @@ sub run {
 	while (<$LOG>) {
 	    push @log, $_;
 	    @log = () if /Run started/;
-	    #print scalar @log, "\n";
 	}
-#	print "========================\n";
-	print "@log";
 
 	for (@log) {
 	    next unless /\[(\d+)\]/;
@@ -402,7 +388,6 @@ sub run {
 	    next unless /\| (Running|Finished) +\[(\w+)\]/;
 	    $in_execution->{$2}++ if $1 eq 'Running';
 	    delete $in_execution->{$2} if $1 eq 'Finished';
-	    #print Dumper $in_execution;
 	}
 
 	@steps = sort keys %$in_execution;
@@ -470,9 +455,6 @@ sub run {
 sub render {
     my ($step, $display) = @_;
 
-#    $step ||= $self;
-#    print "\n"; print Dumper $step; print "\n";
-
     my $str;
     # path to program
     if (defined $step->{path}) {
@@ -484,10 +466,10 @@ sub render {
 
     # arguments
     my $endstr = '';
-#    print Dumper $step;
+
     foreach my $key (keys %{$step->{args}}) {
 	my $arg = $step->{args}->{$key};
-#	print Dumper $arg;
+
 	if (defined $arg->{type} and $arg->{type} eq 'unnamed') {
 	    #$str .= ' "'. $arg->{value}. '"';
 	    $str .= ' '. $arg->{value};
@@ -511,12 +493,11 @@ sub render {
 	} else {
 	    $str .= " -". $key;
 	}
-#	print "+++|$str|$endstr\n";
+
     }
     $str .= $endstr;
 
     $str =~ s/(['"])/\\$1/g if $display;
-#print "--------------|$str\n";
 
     return $str;
 }
@@ -530,11 +511,11 @@ sub stringify {
     # add check for a next pointer that leads nowhere
 
     my @steps = $self->each_next;
-#    print "@steps";
+
     my $outputs; # hashref for storing input and output filenames
     while (my $step_id = shift @steps) {
 	my $step = $self->step($step_id);
-#	print Dumper $step;
+
 	push @res, $step->id, "\n";
 	push @res, "\t", $step->render('4display'), " # ";
 	map { push @res, "->", $_, " " } $step->each_next;
@@ -558,7 +539,7 @@ sub stringify {
 		    ($arg->{value} || ''). "]"
 		    if $prev_step_id ne $step->id and $prev_step_id eq $self->id;
 	    }
-	    # test for steps not refencesed by other steps (missing next tag)
+	    # test for steps not referenced by other steps (missing next tag)
 	}
 	push @res, "\n";
     }
@@ -600,7 +581,8 @@ sub graphviz {
     }
     return $g->as_dot;
 
-    $self->logger->info("Graphing done. Process the dot file (e.g. dot -Tpng p.dot|display " );
+    $self->logger->info("Graphing done. Process the dot ".
+			 "file (e.g. dot -Tpng p.dot|display " );
 
 }
 
@@ -608,9 +590,6 @@ sub graphviz {
 __END__
 
 
-#-----------------------------------------------------------------
-# only for debugging
-#-----------------------------------------------------------------
 
 =head1 NAME
 
@@ -627,10 +606,10 @@ problem. This module is based on assumption that unix pipe and
 redirect system is closest to optimal solution with these
 improvements:
 
-* Enforce the storing of all intermediary steps in a file. 
+* Enforce the storing of all intermediary steps in a file.
 
   This is for clarity, accountability and to enable arbitrarily big
-  data sets. Pipeline can contain an independent step that removes
+  data sets. Pipeline can contain independent steps that remove
   intermediate files if so required.
 
 * Naming of each step.
@@ -666,7 +645,7 @@ the project directory.
 
 
 The debug option will parse the config file, print out the command
-line equivalents of all commands and print warnings of problems
+line equivalents of all commands and print out warnings of problems
 encountered in the file:
 
   pipeline.pl -config t/data/string_manipulation.xml -d /tmp/test
@@ -676,48 +655,34 @@ execution graph. It is done with the help of L<GraphViz> perl
 interface module that will need to be installed from CPAN.
 
 The following command line creates a Graphviz dot file, converts it
-into an image file and opens it with Imagemagic display program:
+into an image file and opens it with the Imagemagic display program:
 
   pipeline.pl -config t/data/string_manipulation.xml -graph > \
     /tmp/p.dot; dot -Tpng /tmp/p.dot | display
 
-Additionally, you can check the xml for validity using the DTD file in
-the docs directory. The DTD has been written so that any attribute
-that can occur only once can equally well be written as a tag. That is
-how the module used to manage configurations, L<XML::Simple>, treats
-XML, so the the aim is to maximize that convernience. The following
-commandline is an easy way to validate an XML file:
-
-  xmllint --dtdvalid docs/pipeline.dtd t/data/string_manipulation.xml
-
 =head2 CONFIGURATION
 
-The default configuration is written in XML. The top level tag,
-C<pipeline> encloses a unordered list of pipeline C<step>s. A sensible
-ordering is encouraged but the pipeline execution does not depend on
-it.
+The default configuration is written in YAML, a simple and human
+readable language that can be parsed in many languages cleanly into
+data structures.
 
-In addition to step, there are only three other top level tags: 1)
-C<name> to give the pipeline a short name, 2) C<version> to indicate
-the version number and 3) C<description> to give a more verbose
-explanation what the pipeline does.
+The YAML file contains four top level keys for the hash that the file
+will be read into: 1) C<name> to give the pipeline a short name, 2)
+C<version> to indicate the version number, 3) C<description> to give a
+more verbose explanation what the pipeline does, and 4) C<steps>
+listing pipeline steps.
 
-  <pipeline>
-    <name>String Manipulation</name>
-    <version>0.4</version>
-    <description>Example of a pipeline
-      Same as running:
-         echo 'abcd' | tee /tmp/str | wc -c ; cat -n /tmp/str | wc -c
-      but every stage is stored in a file
-    </description>
-  ...
-  </pipeline>
+  ---
+  description: "Example of a pipeline
+  name: String Manipulation
+  version: '0.4'
+  steps:
 
 Each C<step> needs an C<id> that is unique within the pipeline and a
 C<name> that identifies an executable somewhere in the system
 path. Alternatively, you can give the path leading to the executable
-file with attribute C<path>. The name will be added to it, padded with
-a suitable separator character, if needed.
+file with key C<path>. The name will be added to the path,
+padded with a suitable separator character, if needed.
 
 Arguments to the executable are given individually within C<arg>
 tags. They are named with the C<key> attribute. A single hyphen is
@@ -727,19 +692,25 @@ are needed, just add one the file.
 Arguments can exist without values, or they can be given with
 attribute C<value>.
 
-  <step id="s3" name="cat">
-    <arg key='n' />
-    <arg key='in' value="s1.txt" type='redir'/>
-    <arg key='out' value="s3_mod.txt" type='redir'/>
-    <next id="s4"/>
-  </step>
+  s3: 
+    name: cat
+    args: 
+      in: 
+        type: redir
+        value: s1.txt
+      "n": {}
+      out: 
+        type: redir
+        value: s3_mod.txt
+    next: 
+      - s4
 
-There are two special keys C<in> and C<out> that need the further
-attibute C<type>. The attribute C<type> can get several kinds values:
+There are two special keys C<in> and C<out> that need to have a further
+ C<type> defined. The IO C<type> can get several kinds values:
 1) C<unnamed> that indicates that the argument is an unnamed argument
-to the excutable. 2) C<redir> will be interpreted as unix redirection
+to the excutable. 2) C<redir> will be interpreted as UNIX redirection
 character '&lt' or '&gt' depending on the context. 3) C<str> in a
-special case which is accompanied by an empty tring as a value that
+special case which is accompanied by an empty string as a value that
 indicates that the string is read from the command line input.
 
 The last two values C<file> and C<dir> are not needed by the pipeline
@@ -747,9 +718,9 @@ but are useful to include to make the pipeline easier to read for
 humans. The interpretation of these arguments is done by the program
 executable called by the step.
 
-Finally, the C<step> tag can contain one or more C<next> tags that
-tell the pipeline the ID of the next step in the execution. Typically,
-these steps depends on the previous step for input. 
+Finally, the C<step> tag can contain the C<next> key that
+gives an array of IDs for the next steps in the execution. Typically,
+these steps depends on the previous step for input.
 
 Practices that are completely bonkers, like spaces in file names, are
 not supported.
@@ -759,7 +730,7 @@ not supported.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2010, Heikki Lehvaslaiho, KAUST (King Abdullah
+Copyright (c) 2012, Heikki Lehvaslaiho, KAUST (King Abdullah
 University of Science and Technology)
 All Rights Reserved.
 
@@ -785,7 +756,7 @@ Control logging output. Defaults to 0.
 
 Setting verbose sets the logging level:
 
-  verbose   =  -1    0     1    
+  verbose   =  -1    0     1
   log level =>  WARN INFO  DEBUG
 
 =head2 config
