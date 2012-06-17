@@ -8,11 +8,11 @@ sub test_input_file {
     return File::Spec->catfile('t', 'data', @_);
 }
 
-diag( "Testing pipeline.pl from command line" );
+diag( "Testing spipe from command line" );
 my $conffile = test_input_file('string_manipulation.yml');
 
-ok `bin/pipeline.pl 2>&1` =~ /ERROR/, 'die without config' ;
-ok `bin/pipeline.pl -v` =~ /pipeline.pl, version /, '--version' ;
-ok `bin/pipeline.pl -help` =~ /User Contributed Perl Documentation/, '--help' ;
-ok `bin/pipeline.pl  -conf $conffile -debug` =~ /s1/, '--debug' ;
+ok `bin/spipe 2>&1` =~ /ERROR/, 'die without config' ;
+ok `bin/spipe -v` =~ /spipe, version /, '--version' ;
+ok `bin/spipe -help` =~ /User Contributed Perl Documentation/, '--help' ;
+ok `bin/spipe  -conf $conffile -debug` =~ /s1/, '--debug' ;
 unlink 'config.yml', 'pipeline.log';

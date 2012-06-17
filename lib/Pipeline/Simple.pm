@@ -243,8 +243,8 @@ sub config {
 	if ($self->dir and not -e $self->dir."/config.yml") {
 	    #print "--->", `pwd`, "\n";
 	    copy $config, $self->dir."/config.yml";
-	    $self->logger->info("Config [$config] file copied to: ".
-				  $self->dir."/config.yml");
+	    $self->logger->info("Config [ $config ] file copied to: [ ".
+				  $self->dir."/config.yml ]");
 	}
 
 	$self->{config} = LoadFile($self->dir."/config.yml");
@@ -505,7 +505,7 @@ sub render {
 sub stringify {
     my ($self) = @_;
 
-    $self->logger->info("Stingify starting" );
+    $self->logger->info("Stringify starting" );
 
     my @res;
     # add checks for duplicated ids

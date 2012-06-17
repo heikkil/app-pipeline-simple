@@ -2,16 +2,16 @@
 
 =head1 NAME
 
-pipeline.pl - pipeline running interface
+spipe - simple pipeline running interface
 
 =head1 SYNOPSIS
 
-B<pipeline.pl> [B<--version> | [B<-?|-h|--help>] | [B<-g|--debug>] |
+B<spipe> [B<--version> | [B<-?|-h|--help>] | [B<-g|--debug>] |
    B<[--graphviz> | B<[-c|--config> file | [B<[-d|--directory> value] |
    B<[-i|--input> string| B<[-it|--itype> string |
    [B<[--start> value] | [B<[--stop> value]
 
-  pipeline.pl -config t/data/string_manipulation.yml -d /tmp/test
+  spipe -config t/data/string_manipulation.yml -d /tmp/test
 
 =head1 DESCRIPTION
 
@@ -42,7 +42,7 @@ Print out a graphviz dot file.
 
 Example one liner to display a graph of the pipeline: 
 
-  pipeline.pl -config t/data/string_manipulation.yml -graph > \ 
+  spipe -config t/data/string_manipulation.yml -graph > \ 
   /tmp/p.dot; dot -Tpng /tmp/p.dot| display
 
 =item B<-c | --config> string
@@ -95,7 +95,7 @@ use Carp;
 use strict;
 use warnings;
 
-use constant PROGRAMME_NAME => 'pipeline.pl';
+use constant PROGRAMME_NAME => 'spipe';
 use constant VERSION => '0.6';
 
 # raising $OUTPUT_AUTOFLUSH flag to get immediate reporting
