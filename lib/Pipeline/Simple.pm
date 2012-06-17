@@ -57,7 +57,7 @@ sub new {
 	## use critic  
         $self->$key($args{$key});
     }
-    # delayed to find out verbosity level
+    # delayed to first find out the verbosity level
     $self->logger->info("Logging started");
 
     # this argument needs to be done last
@@ -104,10 +104,10 @@ sub _configure_logging {
         $to_file->layout ($layout);
 
 	$logger->add_appender($to_file);
+	$logger->info("Logging into file: [ ". $self->dir. '/pipeline.log'. " ]");
     }
 
     $logger->level( $INFO );
-
     $self->logger($logger);
 }
 
@@ -243,7 +243,7 @@ sub config {
 	if ($self->dir and not -e $self->dir."/config.yml") {
 	    #print "--->", `pwd`, "\n";
 	    copy $config, $self->dir."/config.yml";
-	    $self->logger->debug("Config [$config] file copied to: ".
+	    $self->logger->info("Config [$config] file copied to: ".
 				  $self->dir."/config.yml");
 	}
 
@@ -391,7 +391,7 @@ sub run {
 	}
 
 	@steps = sort keys %$in_execution;
-	if (scalar @steps == 0 and scalar @log > 3) {
+	if (scalar @steps == 0 and scalar @log > 6) { # change if logging is increased. Fragile!
 	    $self->logger->warn("Pipeline is already finished. ".
 				"Drop -config and define the start step to rerun" );
 	    exit 0;
@@ -504,6 +504,8 @@ sub render {
 
 sub stringify {
     my ($self) = @_;
+
+    $self->logger->info("Stingify starting" );
 
     my @res;
     # add checks for duplicated ids

@@ -96,7 +96,7 @@ use strict;
 use warnings;
 
 use constant PROGRAMME_NAME => 'pipeline.pl';
-use constant VERSION => '0.4';
+use constant VERSION => '0.6';
 
 # raising $OUTPUT_AUTOFLUSH flag to get immediate reporting
 $| = 1;
@@ -149,8 +149,7 @@ unless (-e "$DIR/config.yml" or $CONFIG ) {
 }
 
 my $p = Pipeline::Simple->new(%args);
-
 print $p->graphviz and exit if $GRAPHVIZ;
-$p->stringify and exit if $DEBUG;
+print $p->stringify and exit if $DEBUG;
 
 $p->run();
