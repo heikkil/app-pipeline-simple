@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------
 # Pipeline::Simple
-# Author: Heikki Lehvaslaiho <heikki.lehvaslaiho@gmail.com>
-# For copyright and disclaimer see Pipeline::Simple.pod.
 #
-# Lightweight workflow manager
 ## no critic
 package Pipeline::Simple;
 # ABSTRACT: Simple workflow manager
@@ -780,7 +777,7 @@ values is done by matching the type string.
 =head1 COPYRIGHT
 
 Copyright (c) 2010, 2011, 2012, Heikki Lehvaslaiho, KAUST (King Abdullah
-University of Science and Technology)
+University of Science and Technology).
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

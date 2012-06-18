@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use constant PROGRAMME_NAME => 'spipe';
-use constant VERSION => '0.6';
+use constant VERSION => '0.7';
 
 # raising $OUTPUT_AUTOFLUSH flag to get immediate reporting
 $| = 1;
@@ -163,7 +163,7 @@ L<Pipeline::Simple>
 =head1 COPYRIGHT
 
 Copyright (c) 2010, 2011, 2012, Heikki Lehvaslaiho, KAUST (King Abdullah
-University of Science and Technology)
+University of Science and Technology).
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
