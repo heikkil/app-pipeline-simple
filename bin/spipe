@@ -18,6 +18,7 @@ $SIG{'INT'} = 'CLEANUP';
 sub CLEANUP { exit(1) }
 
 
+# variables to catch command line options
 our $DEBUG = '';
 our $CONFIG = '';
 our $DIR = '.';

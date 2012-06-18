@@ -19,7 +19,7 @@ use File::Copy;
 use YAML::Syck;
 use Data::Dumper;
 use Log::Log4perl qw(get_logger :levels :no_extra_logdie_message);
-
+use Data::Printer;
 
 #-----------------------------------------------------------------
 # Global variables
@@ -58,7 +58,7 @@ sub new {
         $self->$key($args{$key});
     }
     # delayed to first find out the verbosity level
-    $self->logger->info("Logging started");
+    $self->logger->info("Logging into file: [ ". $self->dir. '/pipeline.log'. " ]");
 
     # this argument needs to be done last
     $self->config($args{'config'}) if defined $args{'config'};
@@ -104,7 +104,6 @@ sub _configure_logging {
         $to_file->layout ($layout);
 
 	$logger->add_appender($to_file);
-	$logger->info("Logging into file: [ ". $self->dir. '/pipeline.log'. " ]");
     }
 
     $logger->level( $INFO );
@@ -188,14 +187,6 @@ sub itype {
     return $self->{_itype};
 }
 
-sub add {
-    my ($self, $value) = @_;
-    if (defined $value) {
-	$self->{_add} = $value;
-    }
-    return $self->{_add};
-}
-
 sub start {
     my ($self, $value) = @_;
     if (defined $value) {
@@ -243,7 +234,7 @@ sub config {
 	if ($self->dir and not -e $self->dir."/config.yml") {
 	    #print "--->", `pwd`, "\n";
 	    copy $config, $self->dir."/config.yml";
-	    $self->logger->info("Config [ $config ] file copied to: [ ".
+	    $self->logger->info("Config file [ $config ] copied to: [ ".
 				  $self->dir."/config.yml ]");
 	}
 
@@ -284,25 +275,43 @@ sub config {
 	# insert the startup value into the appropriate starting step
 	# unless we are reading old config
 	if ($self->itype and $self->input) { # only if new starting input value has been given
+	    $self->logger->info("Input value: [". $self->input. "]" );
+	    $self->logger->info("Input type: [". $self->itype. "]" );
 	    my $real_start_id;
-	    for my $step_id ( $self->each_next) {
-		my $step = $self->step($step_id);
+	    for my $step ( $self->each_step) {
+		#my $s = p $step;
+		#$self->logger->info("Step: [". $s. "]" );
 
 		# if input type is right, insert the value
 		# note only one of the each type can be used
-		foreach my $arg (@{$step->{arg}}) {
-		    #print Dumper $arg;
-		    next unless $arg->{key} eq 'in' and
-			        defined $arg->{type} and
-			        $arg->{type} eq $self->itype;
-		    #print Dumper $self->itype, $step->id, $arg;
+		foreach my $key ( keys %{$step->{args}} ) {
+		    my $arg = $step->{args}->{$key};
+
+		    next unless $key eq 'in';
+		    next unless defined $arg->{type};
+		    next unless $arg->{type} eq $self->itype;
+
+		    #my $s = p $arg;
+		    #$self->logger->info("Arg before: [". $s. "]" );
+
+#		    $self->logger->info("Input arg: [". $s. "]" );
 		    $arg->{value} = $self->input;
-		    #print Dumper $arg;
-		    $real_start_id = $step_id;
+		    $real_start_id = $step->id;
+#		    my $ss = p $arg;
+#		    $self->logger->info("Arg after: [". $ss. "]" );
+#		    $self->logger->info("Start ID: [". $real_start_id. "]" );
 		}
 	    }
 	    $self->{next} = undef;
-	    push @{$self->{next}}, { id => $real_start_id};
+	    push @{$self->{next}}, $real_start_id;
+#	    my $s = p $self->config;
+#	    $self->logger->info("Self-config after: [". $s. "]" );
+	    $self->logger->info("Starting point: [". $real_start_id. "]" );
+
+	    # the stored config file needs to be overwritten with these modifications
+	    open my $OUT, ">", $self->dir."/config.yml";
+#	    print $OUT 'testing';
+	    print $OUT Dump ($self->config);
 	}
     }
     return  $self->{config};
@@ -375,23 +384,25 @@ sub run {
 				    "/pipeline.log for reading: $!");
 	my $in_execution;
 
-	# take only the previous run
+	# look into only the latest run
 	my @log;
 	while (<$LOG>) {
 	    push @log, $_;
 	    @log = () if /Run started/;
 	}
 
+	my $done;
 	for (@log) {
 	    next unless /\[(\d+)\]/;
 	    undef $in_execution; # start of a new run
 	    next unless /\| (Running|Finished) +\[(\w+)\]/;
 	    $in_execution->{$2}++ if $1 eq 'Running';
 	    delete $in_execution->{$2} if $1 eq 'Finished';
+	    $done = 1 if /DONE/;
 	}
 
 	@steps = sort keys %$in_execution;
-	if (scalar @steps == 0 and scalar @log > 6) { # change if logging is increased. Fragile!
+	if (scalar @steps == 0 and $done) {
 	    $self->logger->warn("Pipeline is already finished. ".
 				"Drop -config and define the start step to rerun" );
 	    exit 0;
@@ -444,7 +455,8 @@ sub run {
 	}
 
     }
-    1;
+    $self->logger->info("DONE" );
+    return 1;
 }
 
 
@@ -471,7 +483,6 @@ sub render {
 	my $arg = $step->{args}->{$key};
 
 	if (defined $arg->{type} and $arg->{type} eq 'unnamed') {
-	    #$str .= ' "'. $arg->{value}. '"';
 	    $str .= ' '. $arg->{value};
 	    next;
 	}
@@ -629,7 +640,7 @@ execution of a each ordered step within the pipeline. From that derives
 that the pipeline object model needs only one object that can
 recursively represent the whole pipeline as well as individual steps.
 
-=head2 RUNNING
+=head1 RUNNING
 
 Pipeline::Simple comes with a wrapper C<pipeline.pl> command line
 program. Do
@@ -662,7 +673,7 @@ into an image file and opens it with the Imagemagic display program:
   pipeline.pl -config t/data/string_manipulation.xml -graph > \
     /tmp/p.dot; dot -Tpng /tmp/p.dot | display
 
-=head2 CONFIGURATION
+=head1 CONFIGURATION
 
 The default configuration is written in YAML, a simple and human
 readable language that can be parsed in many languages cleanly into
@@ -675,7 +686,7 @@ more verbose explanation what the pipeline does, and 4) C<steps>
 listing pipeline steps.
 
   ---
-  description: "Example of a pipeline
+  description: "Example of a pipeline"
   name: String Manipulation
   version: '0.4'
   steps:
@@ -708,19 +719,26 @@ attribute C<value>.
       - s4
 
 There are two special keys C<in> and C<out> that need to have a further
- C<type> defined. The IO C<type> can get several kinds values:
-1) C<unnamed> that indicates that the argument is an unnamed argument
-to the excutable. 2) C<redir> will be interpreted as UNIX redirection
-character '&lt' or '&gt' depending on the context. 3) C<str> in a
-special case which is accompanied by an empty string as a value that
-indicates that the string is read from the command line input.
+ C<type> defined. The IO C<type> can get two kind of values:
 
-The last two values C<file> and C<dir> are not needed by the pipeline
+=over
+
+=item  C<unnamed>
+
+that indicates that the argument is an unnamed argument
+to the excutable.
+
+=item  C<redir>
+
+will be interpreted as UNIX redirection character '&lt' or '&gt'
+depending on the context.
+
+=back
+
+The values C<file> and C<dir> are not needed by the pipeline
 but are useful to include to make the pipeline easier to read for
 humans. The interpretation of these arguments is done by the program
 executable called by the step.
-
-
 
 Finally, the C<step> tag can contain the C<next> key that
 gives an array of IDs for the next steps in the execution. Typically,
@@ -729,7 +747,34 @@ these steps depends on the previous step for input.
 Practices that are completely bonkers, like spaces in file names, are
 not supported.
 
-=head1 ACKNOWLEDGMENTS
+=head2 Advanced features
+
+The pipeline does not have to be linear; it can contain branches. For
+example, the pipeline can have several start points with different
+kinds of input: file and string. 
+
+Sometimes it is useful to be run the same pipeline with different
+parameter. The starting point of execution can take a value from the
+command line.  Leave the value for the given argument blank in the
+configuration file and give it from the command line. Matching of
+values is done by matching the type string.
+
+  spipe -conf input_demo.yml --input=ABC --itype=str
+
+  ---
+  description: "Demonstrate input from command line"
+  name: input.yml
+  version: '0.1'
+  steps:
+    s1:
+      name: echo
+      args:
+        in:
+          type: unnamed
+          value:
+        out:
+          type: redir
+          value: s1_string.txt
 
 
 =head1 COPYRIGHT
@@ -782,10 +827,6 @@ Name of the program that will be executed
 Path to the directory where the program recides. Can be used if the
 program is not on path. Will be prepended to the name.
 
-=head2 add
-
-... for the life of me, I can not remember not find this one FIX
-
 =head2 next_id
 
 ID of the next step in execution. It typically depends on the output
@@ -797,7 +838,7 @@ Value read in interactively from commanline
 
 =head2 itype
 
-type of input for the commandline value
+Type of input for the commandline value
 
 =head2 start
 
@@ -837,7 +878,7 @@ Reference to the internal Log::Logger4perl object
 
 =head2 render
 
-Transcribe the step into a *nix command line string ready for display
+Transcribe the step into a UNIX command line string ready for display
 or execution.
 
 =head2 stringify
