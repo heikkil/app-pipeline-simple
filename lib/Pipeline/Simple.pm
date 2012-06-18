@@ -4,7 +4,7 @@
 # For copyright and disclaimer see Pipeline::Simple.pod.
 #
 # Lightweight workflow manager
-## no critic 
+## no critic
 package Pipeline::Simple;
 # ABSTRACT: Simple workflow manager
 
@@ -52,9 +52,9 @@ sub new {
     foreach my $key (keys %args) {
 	next if $key eq 'config'; # this needs to be evaluated last
 	next if $key eq 'dir'; # done this
-	## no critic  
+	## no critic
         no strict 'refs';
-	## use critic  
+	## use critic
         $self->$key($args{$key});
     }
     # delayed to first find out the verbosity level
@@ -122,7 +122,7 @@ sub verbose {
     if (defined $value) {
 	$self->{_verbose} = $value;
 
-        # verbose   =  -1    0     1   
+        # verbose   =  -1    0     1
 	# log level =  WARN INFO  DEBUG
 
 	$self->logger->level( $logger_level->{$value} );
@@ -262,7 +262,7 @@ sub config {
 	    # bless all steps into Pipeline objects
 	    bless $step, ref($self);
 
-	    #print "ERROR: $id already exists\n" if defined $self->step($id); 
+	    #print "ERROR: $id already exists\n" if defined $self->step($id);
 	    # create the list of all steps to be used by each_step()
 	    $step->id($id);
 	    push @{$self->{steps}}, $step;
@@ -292,8 +292,8 @@ sub config {
 		# note only one of the each type can be used
 		foreach my $arg (@{$step->{arg}}) {
 		    #print Dumper $arg;
-		    next unless $arg->{key} eq 'in' and 
-			        defined $arg->{type} and 
+		    next unless $arg->{key} eq 'in' and
+			        defined $arg->{type} and
 			        $arg->{type} eq $self->itype;
 		    #print Dumper $self->itype, $step->id, $arg;
 		    $arg->{value} = $self->input;
@@ -478,10 +478,10 @@ sub render {
 
 	if (defined $arg->{type} and $arg->{type} eq 'redir') {
 	    if ($key eq 'in') {
-		$endstr .= " < ". $arg->{value}; 
+		$endstr .= " < ". $arg->{value};
 	    }
 	    elsif ($key eq 'out') {
-		$endstr .= " > ". $arg->{value}; 
+		$endstr .= " > ". $arg->{value};
 	    } else {
 		croak "Unknown key ". $key;
 	    }
@@ -694,17 +694,17 @@ are needed, just add one the file.
 Arguments can exist without values, or they can be given with
 attribute C<value>.
 
-  s3: 
+  s3:
     name: cat
-    args: 
-      in: 
+    args:
+      in:
         type: redir
         value: s1.txt
       "n": {}
-      out: 
+      out:
         type: redir
         value: s3_mod.txt
-    next: 
+    next:
       - s4
 
 There are two special keys C<in> and C<out> that need to have a further
@@ -719,6 +719,8 @@ The last two values C<file> and C<dir> are not needed by the pipeline
 but are useful to include to make the pipeline easier to read for
 humans. The interpretation of these arguments is done by the program
 executable called by the step.
+
+
 
 Finally, the C<step> tag can contain the C<next> key that
 gives an array of IDs for the next steps in the execution. Typically,
