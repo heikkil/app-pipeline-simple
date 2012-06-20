@@ -8,7 +8,9 @@ use strict;
 use warnings;
 
 use constant PROGRAMME_NAME => 'spipe';
-use constant VERSION => '0.7';
+# ABSTRACT: command line for the simple workflow manager
+# VERSION
+# PODNAME: spipe
 
 # raising $OUTPUT_AUTOFLUSH flag to get immediate reporting
 $| = 1;
@@ -31,7 +33,7 @@ our $STOP  =  '';
 our $VERBOSE;
 
 GetOptions(
-           'v|version'     => sub{ print PROGRAMME_NAME, ", version ", VERSION, "\n";
+           'v|version'     => sub{ print PROGRAMME_NAME, ", version ", $VERSION, "\n";
 				   exit(1); },
            'g|debug'       => \$DEBUG,
            'c|config:s'    => \$CONFIG,

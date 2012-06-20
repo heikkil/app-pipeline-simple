@@ -4,6 +4,7 @@
 ## no critic
 package Pipeline::Simple;
 # ABSTRACT: Simple workflow manager
+# VERSION
 
 use strict;
 use warnings;
@@ -599,8 +600,6 @@ sub graphviz {
 1;
 __END__
 
-
-
 =head1 NAME
 
 Pipeline::Simple - A simple workflow manager
@@ -612,7 +611,7 @@ Pipeline::Simple - A simple workflow manager
 =head1 DESCRIPTION
 
 Workflow management in computational (biological) sciences is a hard
-problem. This module is based on assumption that unix pipe and
+problem. This module is based on assumption that UNIX pipe and
 redirect system is closest to optimal solution with these
 improvements:
 
@@ -660,7 +659,7 @@ encountered in the file:
 
   pipeline.pl -config t/data/string_manipulation.xml -d /tmp/test
 
-An other tool integrated in the system is visualisation of the
+An other tool integrated in the system is visualization of the
 execution graph. It is done with the help of L<GraphViz> perl
 interface module that will need to be installed from CPAN.
 
@@ -723,7 +722,7 @@ There are two special keys C<in> and C<out> that need to have a further
 =item  C<unnamed>
 
 that indicates that the argument is an unnamed argument
-to the excutable.
+to the executable.
 
 =item  C<redir>
 
@@ -748,7 +747,7 @@ not supported.
 
 The pipeline does not have to be linear; it can contain branches. For
 example, the pipeline can have several start points with different
-kinds of input: file and string. 
+kinds of input: file and string.
 
 Sometimes it is useful to be run the same pipeline with different
 parameter. The starting point of execution can take a value from the
@@ -792,7 +791,7 @@ This software is provided "as is" without warranty of any kind.
 
 =head2 new
 
-Contructor
+Constructor
 
 =head2 verbose
 
@@ -821,7 +820,7 @@ Name of the program that will be executed
 
 =head2 path
 
-Path to the directory where the program recides. Can be used if the
+Path to the directory where the program resides. Can be used if the
 program is not on path. Will be prepended to the name.
 
 =head2 next_id
@@ -831,11 +830,11 @@ of this step.
 
 =head2 input
 
-Value read in interactively from commanline
+Value read in interactively from command line
 
 =head2 itype
 
-Type of input for the commandline value
+Type of input for the command line value
 
 =head2 start
 
