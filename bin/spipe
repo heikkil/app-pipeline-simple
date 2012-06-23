@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use constant PROGRAMME_NAME => 'spipe';
-# ABSTRACT: command line for the simple workflow manager
+# ABSTRACT: simple pipeline running interface
 # VERSION
 # PODNAME: spipe
 
@@ -161,16 +161,6 @@ Log::Log4perl levels:
 =head1 SEE ALSO
 
 L<Pipeline::Simple>
-
-=head1 COPYRIGHT
-
-Copyright (c) 2010, 2011, 2012, Heikki Lehvaslaiho, KAUST (King Abdullah
-University of Science and Technology).
-
-This module is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
-
-See F<http://dev.perl.org/licenses/artistic.html>
 
 =cut
 

@@ -600,10 +600,6 @@ sub graphviz {
 1;
 __END__
 
-=head1 NAME
-
-Pipeline::Simple - A simple workflow manager
-
 =head1 SYNOPSIS
 
   # called from a script
@@ -638,16 +634,16 @@ recursively represent the whole pipeline as well as individual steps.
 
 =head1 RUNNING
 
-Pipeline::Simple comes with a wrapper C<pipeline.pl> command line
+Pipeline::Simple comes with a wrapper C<spipe> command line
 program. Do
 
-   pipeline.pl -h
+   spipe -h
 
 to see instructions on how to run it.
 
 Example run:
 
-  pipeline.pl -config t/data/string_manipulation.xml -d /tmp/test
+  spipe -config t/data/string_manipulation.xml -d /tmp/test
 
 reads instructions from the config file and writes all information to
 the project directory.
@@ -657,7 +653,7 @@ The debug option will parse the config file, print out the command
 line equivalents of all commands and print out warnings of problems
 encountered in the file:
 
-  pipeline.pl -config t/data/string_manipulation.xml -d /tmp/test
+  spipe -config t/data/string_manipulation.xml -d /tmp/test
 
 An other tool integrated in the system is visualization of the
 execution graph. It is done with the help of L<GraphViz> perl
@@ -666,7 +662,7 @@ interface module that will need to be installed from CPAN.
 The following command line creates a Graphviz dot file, converts it
 into an image file and opens it with the Imagemagic display program:
 
-  pipeline.pl -config t/data/string_manipulation.xml -graph > \
+  spipe -config t/data/string_manipulation.xml -graph > \
     /tmp/p.dot; dot -Tpng /tmp/p.dot | display
 
 =head1 CONFIGURATION
@@ -772,28 +768,11 @@ values is done by matching the type string.
           type: redir
           value: s1_string.txt
 
-
-=head1 COPYRIGHT
-
-Copyright (c) 2010, 2011, 2012, Heikki Lehvaslaiho, KAUST (King Abdullah
-University of Science and Technology).
-
-This module is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
-
-See F<http://dev.perl.org/licenses/artistic.html>
-
-=head1 DISCLAIMER
-
-This software is provided "as is" without warranty of any kind.
-
-=head1 SUBROUTINES
-
-=head2 new
+=method new
 
 Constructor
 
-=head2 verbose
+=method verbose
 
 Control logging output. Defaults to 0.
 
@@ -802,90 +781,88 @@ Setting verbose sets the logging level:
   verbose   =  -1    0     1
   log level =>  WARN INFO  DEBUG
 
-=head2 config
+=method config
 
 Read in the named config file.
 
-=head2 id
+=method id
 
 ID of the step
 
-=head2 description
+=method description
 
 Verbose description of the step
 
-=head2 name
+=method name
 
 Name of the program that will be executed
 
-=head2 path
+=method path
 
 Path to the directory where the program resides. Can be used if the
 program is not on path. Will be prepended to the name.
 
-=head2 next_id
+=method next_id
 
 ID of the next step in execution. It typically depends on the output
 of this step.
 
-=head2 input
+=method input
 
 Value read in interactively from command line
 
-=head2 itype
+=method itype
 
 Type of input for the command line value
 
-=head2 start
+=method start
 
 The ID of the step to start the execution
 
-=head2 stop
+=method stop
 
 The ID of the step to stop the execution
 
-=head2 dir
+=method dir
 
 Working directory where all files are stored.
 
-=head2 step
+=method step
 
 Returns the step by its ID.
 
-=head2 each_next
+=method each_next
 
 Return an array of steps after this one.
 
-=head2 each_step
+=method each_step
 
 Return all steps.
 
-=head2 run
+=method run
 
 Run this step and call the one(s).
 
-=head2 debug
+=method debug
 
 Run in debug mode and test the configuration file
 
-=head2 logger
+=method logger
 
 Reference to the internal Log::Logger4perl object
 
-=head2 render
+=method render
 
 Transcribe the step into a UNIX command line string ready for display
 or execution.
 
-=head2 stringify
+=method stringify
 
 Analyze the configuration without executing it.
 
-=head2 graphviz
+=method graphviz
 
 Create a GraphViz dot file from the config.
-
-=for Pod::Coverage accessible
 
 =cut
 
