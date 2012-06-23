@@ -15,7 +15,6 @@ use Carp;
 use File::Basename;
 use File::Copy;
 use YAML::Syck;
-use Data::Dumper;
 use Log::Log4perl qw(get_logger :levels :no_extra_logdie_message);
 use Data::Printer;
 
@@ -767,6 +766,12 @@ values is done by matching the type string.
         out:
           type: redir
           value: s1_string.txt
+
+The empty C<value> will be filled in from the command line into the
+C<config.yml> stored in the project directory. Also, the config file
+looks slightly different since the steps are written out as
+Pipeline::Simple objects. Functionally there is no difference.
+
 
 =method new
 
