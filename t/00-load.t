@@ -4,21 +4,21 @@ use Data::Dumper;
 use File::Spec;
 
 BEGIN {
-      use_ok( 'Pipeline::Simple' );
+      use_ok( 'App::Pipeline::Simple' );
 }
 
 sub test_input_file {
     return File::Spec->catfile('t', 'data', @_);
 }
 
-diag( "Testing Pipeline::Simple methods in memory" );
+diag( "Testing App::Pipeline::Simple methods in memory" );
 
 # debug ignores the missing config file
-my $p = Pipeline::Simple->new(debug => 1, verbose => -1);
-ok ref($p) eq 'Pipeline::Simple', 'new()';
+my $p = App::Pipeline::Simple->new(debug => 1, verbose => -1);
+ok ref($p) eq 'App::Pipeline::Simple', 'new()';
 
-my $s2 = Pipeline::Simple->new(id=> 'S2', debug => 1, verbose => -1);
-ok ref($s2) eq 'Pipeline::Simple', 'new()';
+my $s2 = App::Pipeline::Simple->new(id=> 'S2', debug => 1, verbose => -1);
+ok ref($s2) eq 'App::Pipeline::Simple', 'new()';
 
 # method testing
 ok $s2->id() eq 'S2', 'id()';
@@ -33,5 +33,5 @@ ok $s2->dir('data'), 'dir()';
 my @methods = qw(id name description next_id config
 		 run input itype
 	       );
-can_ok 'Pipeline::Simple', @methods;
+can_ok 'App::Pipeline::Simple', @methods;
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-use Pipeline::Simple;
+use App::Pipeline::Simple;
 use Getopt::Long;
 use Carp;
 
@@ -63,7 +63,7 @@ unless (-e "$DIR/config.yml" or $CONFIG ) {
 	"it has to be found the working directory\n"
 }
 
-my $p = Pipeline::Simple->new(%args);
+my $p = App::Pipeline::Simple->new(%args);
 print $p->graphviz and exit if $GRAPHVIZ;
 print $p->stringify and exit if $DEBUG;
 
@@ -86,7 +86,7 @@ B<spipe> [B<--version> | [B<-?|-h|--help>] | [B<-g|--debug>] |
 =head1 DESCRIPTION
 
 For internal details of the pipeline, check the documentation for the
-perl module L<Pipeline::Simple>.
+perl module L<App::Pipeline::Simple>.
 
 =head1 OPTIONS
 
@@ -160,7 +160,7 @@ Log::Log4perl levels:
 
 =head1 SEE ALSO
 
-L<Pipeline::Simple>
+L<App::Pipeline::Simple>
 
 =cut
 

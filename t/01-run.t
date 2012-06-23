@@ -4,20 +4,20 @@ use Data::Dumper;
 use File::Spec;
 
 BEGIN {
-      use_ok( 'Pipeline::Simple' );
+      use_ok( 'App::Pipeline::Simple' );
 }
 
 sub test_input_file {
     return File::Spec->catfile('t', 'data', @_);
 }
 
-diag( "Testing Pipeline::Simple run from file" );
+diag( "Testing App::Pipeline::Simple run from file" );
 
 
 # reading in a configuration
 my $dir = "/tmp/pl$$";
 
-my $pl = Pipeline::Simple->new
+my $pl = App::Pipeline::Simple->new
    (config=>test_input_file('string_manipulation.yml'),
     dir=>$dir, verbose=> -1);
 

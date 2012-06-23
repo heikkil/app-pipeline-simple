@@ -2,7 +2,7 @@
 # Pipeline::Simple
 #
 ## no critic
-package Pipeline::Simple;
+package App::Pipeline::Simple;
 # ABSTRACT: Simple workflow manager
 # VERSION
 
@@ -633,7 +633,7 @@ recursively represent the whole pipeline as well as individual steps.
 
 =head1 RUNNING
 
-Pipeline::Simple comes with a wrapper C<spipe> command line
+App::Pipeline::Simple comes with a wrapper C<spipe> command line
 program. Do
 
    spipe -h
@@ -770,7 +770,7 @@ values is done by matching the type string.
 The empty C<value> will be filled in from the command line into the
 C<config.yml> stored in the project directory. Also, the config file
 looks slightly different since the steps are written out as
-Pipeline::Simple objects. Functionally there is no difference.
+App::Pipeline::Simple objects. Functionally there is no difference.
 
 
 =method new
