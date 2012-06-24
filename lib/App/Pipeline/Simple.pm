@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------
-# Pipeline::Simple
+# App::Pipeline::Simple
 #
 ## no critic
 package App::Pipeline::Simple;
@@ -225,11 +225,11 @@ sub config {
 	$self->logger->info("Using config file: [ ". $config. " ]");
 	my $pwd = `pwd`; chomp $pwd;
 	$self->logger->debug("pwd: $pwd");
-	die unless -e $config;
+	$self->logger->debug("config: $config");
+	die  unless -e $config;
 	# copy the pipeline config
 
 	if ($self->dir and not -e $self->dir."/config.yml") {
-	    #print "--->", `pwd`, "\n";
 	    copy $config, $self->dir."/config.yml";
 	    $self->logger->info("Config file [ $config ] copied to: [ ".
 				  $self->dir."/config.yml ]");
@@ -268,6 +268,8 @@ sub config {
 	}
 
 	#run needs to fail if starting input values are not set!
+#	my $s = p $self->config;# here x
+#	$self->logger->info("Self-config after: [". $s. "]" );# here x
 
 	# insert the startup value into the appropriate starting step
 	# unless we are reading old config
@@ -276,8 +278,6 @@ sub config {
 	    $self->logger->info("Input type: [". $self->itype. "]" );
 	    my $real_start_id;
 	    for my $step ( $self->each_step) {
-		#my $s = p $step;
-		#$self->logger->info("Step: [". $s. "]" );
 
 		# if input type is right, insert the value
 		# note only one of the each type can be used
@@ -288,26 +288,16 @@ sub config {
 		    next unless defined $arg->{type};
 		    next unless $arg->{type} eq $self->itype;
 
-		    #my $s = p $arg;
-		    #$self->logger->info("Arg before: [". $s. "]" );
-
-#		    $self->logger->info("Input arg: [". $s. "]" );
 		    $arg->{value} = $self->input;
 		    $real_start_id = $step->id;
-#		    my $ss = p $arg;
-#		    $self->logger->info("Arg after: [". $ss. "]" );
-#		    $self->logger->info("Start ID: [". $real_start_id. "]" );
 		}
 	    }
 	    $self->{next} = undef;
 	    push @{$self->{next}}, $real_start_id;
-#	    my $s = p $self->config;
-#	    $self->logger->info("Self-config after: [". $s. "]" );
 	    $self->logger->info("Starting point: [". $real_start_id. "]" );
 
 	    # the stored config file needs to be overwritten with these modifications
 	    open my $OUT, ">", $self->dir."/config.yml";
-#	    print $OUT 'testing';
 	    print $OUT Dump ($self->config);
 	}
     }
@@ -479,29 +469,32 @@ sub render {
     foreach my $key (keys %{$step->{args}}) {
 	my $arg = $step->{args}->{$key};
 
-	if (defined $arg->{type} and $arg->{type} eq 'unnamed') {
-	    $str .= ' '. $arg->{value};
-	    next;
-	}
-
-	if (defined $arg->{type} and $arg->{type} eq 'redir') {
-	    if ($key eq 'in') {
-		$endstr .= " < ". $arg->{value};
+	if (ref $arg) {
+	    if (defined $arg->{type} and $arg->{type} eq 'unnamed') {
+		$str .= ' '. $arg->{value};
 	    }
-	    elsif ($key eq 'out') {
-		$endstr .= " > ". $arg->{value};
+	    elsif (defined $arg->{type} and $arg->{type} eq 'redir') {
+		if ($key eq 'in') {
+		    $endstr .= " < ". $arg->{value};
+		}
+		elsif ($key eq 'out') {
+		    $endstr .= " > ". $arg->{value};
+		} else {
+		    croak "Unknown key ". $key;
+		}
+	    }
+	    elsif (defined $arg->{value}) {
+		$str .= " -". $key. " ". $arg->{value};
 	    } else {
-		croak "Unknown key ". $key;
+		$str .= " -". $key;
 	    }
-	    next;
-	}
-
-	if (defined $arg->{value}) {
-	    $str .= " -". $key. "=". $arg->{value};
 	} else {
-	    $str .= " -". $key;
+	    if ($arg) {
+		$str .= " -". $key. " ". $arg;
+	    } else {
+		$str .= " -". $key;
+	    }
 	}
-
     }
     $str .= $endstr;
 
