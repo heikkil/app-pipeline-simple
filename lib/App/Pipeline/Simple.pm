@@ -675,19 +675,16 @@ listing pipeline steps.
   version: '0.4'
   steps:
 
-Each C<step> needs an C<id> that is unique within the pipeline and a
-C<name> that identifies an executable somewhere in the system
-path. Alternatively, you can give the path leading to the executable
-file with key C<path>. The name will be added to the path,
-padded with a suitable separator character, if needed.
+Each C<step> is identified by an unique ID and has a C<name> that
+identifies an executable somewhere in the system path. Alternatively,
+you can give the full path leading to the executable file with key
+C<path>. The name will be added to the path and padded with a suitable
+separator character when  needed.
 
-Arguments to the executable are given individually within C<arg>
-tags. They are named with the C<key> attribute. A single hyphen is
-added in front of the arguments when they are executed. If two hyphens
-are needed, just add one the file.
-
-Arguments can exist without values, or they can be given with
-attribute C<value>.
+Arguments to the executable are given individually as key/value pairs
+within the C<args> tag. A single hyphen is added in front of the
+argument key when they are executed. If two hyphens are needed, just
+add one the key. Arguments can exist without values, too.
 
   s3:
     name: cat
@@ -695,34 +692,38 @@ attribute C<value>.
       in:
         type: redir
         value: s1.txt
-      "n": {}
+      n:
       out:
         type: redir
         value: s3_mod.txt
     next:
       - s4
 
-There are two special keys C<in> and C<out> that need to have a further
- C<type> defined. The IO C<type> can get two kind of values:
+There are two special keys C<in> and C<out> that need to have a key
+ C<type> defined. The IO C<type> can get several kinds of values:
 
 =over
 
 =item  C<unnamed>
 
-that indicates that the argument is an unnamed argument
-to the executable.
+that indicates that the argument is an unnamed argument to the
+executable
 
 =item  C<redir>
 
 will be interpreted as UNIX redirection character '&lt' or '&gt'
-depending on the context.
+depending on the context
+
+=item  C<file>
+
+means that IO happens from/to a file and is rendered as named argument
+
+=item  C<dir>
+
+is rendered like file, but is a mnemonic that all files under this
+directory name are processed
 
 =back
-
-The values C<file> and C<dir> are not needed by the pipeline
-but are useful to include to make the pipeline easier to read for
-humans. The interpretation of these arguments is done by the program
-executable called by the step.
 
 Finally, the C<step> tag can contain the C<next> key that
 gives an array of IDs for the next steps in the execution. Typically,
@@ -737,7 +738,7 @@ The pipeline does not have to be linear; it can contain branches. For
 example, the pipeline can have several start points with different
 kinds of input: file and string.
 
-Sometimes it is useful to be run the same pipeline with different
+Sometimes it is useful to run the same pipeline with different
 parameter. The starting point of execution can take a value from the
 command line.  Leave the value for the given argument blank in the
 configuration file and give it from the command line. Matching of
