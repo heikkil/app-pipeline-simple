@@ -16,7 +16,7 @@ use File::Basename;
 use File::Copy;
 use YAML::Syck;
 use Log::Log4perl qw(get_logger :levels :no_extra_logdie_message);
-use Data::Printer;
+#use Data::Printer;
 
 #-----------------------------------------------------------------
 # Global variables
