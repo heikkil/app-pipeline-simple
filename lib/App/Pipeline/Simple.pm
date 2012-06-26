@@ -561,7 +561,7 @@ sub graphviz {
 
     my $end;
     $g->add_node($self->id,
-		 label => $self->id. " : ".
+		 label => $self->id.
 		 $self->render('4display'), rank => 'top');
     map {  $g->add_edge('s0' => $_) }  $self->each_next;
     if ($self->description) {
@@ -571,14 +571,14 @@ sub graphviz {
     }
 
     foreach my $step ($self->each_step) {
-	$g->add_node($step->id, label => $step->id. " : ". ($step->name||'') );
+	$g->add_node($step->id, label => $step->id );
 	if ($step->each_next) {
-	    map {  $g->add_edge($step->id => $_, label => $step->render('display') ) }
+	    map {  $g->add_edge($step->id => $_, label => " ". $step->render('display') ) }
 		$step->each_next;
 	} else {
 	    $end++;
 	    $g->add_node($end, label => ' ');
-	    $g->add_edge($step->id => $end, label => $step->render('display') );
+	    $g->add_edge($step->id => $end, label => " ". $step->render('display') );
 	}
 
     }
