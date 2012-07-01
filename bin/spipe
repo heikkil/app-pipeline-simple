@@ -128,7 +128,7 @@ config.yml in the current directory.
 Directory to keep all files.
 
 If the directory does not exist, it will be created and a copy of the
-config file will be copied in it under name C<config.yml>.
+config file will be copied into it under name C<config.yml>.
 
 For subsequent runs of the that pipeline, you adjust the parameters in
 the configuration file and rerun spipe without -config and -directory
@@ -144,14 +144,14 @@ Type of the optional input. Values?
 
 =item B<--start> string
 
-Name of the step to start or restart the pipeline.
+ID of the step to start or restart the pipeline.
 
 Fails if the prerequisites of the step are not met, i.e. the input
 file(s) does not exist.
 
 =item B<--stop> string
 
-Name of the step to stop the pipeline. Defaults to the last step.
+ID of the step to stop the pipeline. Defaults to the last step.
 
 =item B<--verbose> int
 
@@ -208,11 +208,11 @@ listing pipeline steps.
   version: '0.4'
   steps:
 
-Each C<step> is identified by an unique ID and has a C<name> that
-identifies an executable somewhere in the system path. Alternatively,
-you can give the full path leading to the executable file with key
-C<path>. The name will be added to the path and padded with a suitable
-separator character when  needed.
+Each C<step> is identified by an unique short ID and has a C<name>
+that identifies an executable somewhere in the system
+path. Alternatively, you can give the full path leading to the
+executable file with key C<path>. The name will be added to the path
+and padded with a suitable separator character when needed.
 
 Arguments to the executable are given individually as key/value pairs
 within the C<args> tag. A single hyphen is added in front of the
@@ -260,7 +260,7 @@ directory name are processed
 
 Finally, the C<step> tag can contain the C<next> key that
 gives an array of IDs for the next steps in the execution. Typically,
-these steps depends on the previous step for input.
+these steps depend on the previous step for input.
 
 Practices that are completely bonkers, like spaces in file names, are
 not supported.

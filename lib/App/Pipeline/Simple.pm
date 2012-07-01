@@ -599,7 +599,7 @@ __END__
 =head1 DESCRIPTION
 
 Unless you want to change or extend the module, you probably do not
-need to read this documention. Runtime information is in L<spipe>
+need to read this documentation. Runtime information is in L<spipe>
 application.
 
 Workflow management in computational (biological) sciences is a hard
@@ -607,7 +607,7 @@ problem. This module is based on assumption that UNIX pipe and
 redirect system is closest to optimal solution with these
 improvements:
 
-* Enforce the storing of all intermediary steps in a file.
+* Enforce the storing of all intermediate steps in a file.
 
   This is for clarity, accountability and to enable arbitrarily big
   data sets. Pipeline can contain independent steps that remove
@@ -636,7 +636,7 @@ and other instances are created for each step in the pipeline.
 
 =method verbose
 
-Control logging output. Defaults to 0.
+Controls logging output. Defaults to 0.
 
 Setting verbose sets the logging level:
 
