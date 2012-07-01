@@ -598,6 +598,10 @@ __END__
 
 =head1 DESCRIPTION
 
+Unless you want to change or extend the module, you probably do not
+need to read this documention. Runtime information is in L<spipe>
+application.
+
 Workflow management in computational (biological) sciences is a hard
 problem. This module is based on assumption that UNIX pipe and
 redirect system is closest to optimal solution with these
@@ -624,152 +628,11 @@ execution of a each ordered step within the pipeline. From that derives
 that the pipeline object model needs only one object that can
 recursively represent the whole pipeline as well as individual steps.
 
-=head1 RUNNING
-
-App::Pipeline::Simple comes with a wrapper C<spipe> command line
-program. Do
-
-   spipe -h
-
-to see instructions on how to run it.
-
-Example run:
-
-  spipe -config t/data/string_manipulation.xml -d /tmp/test
-
-reads instructions from the config file and writes all information to
-the project directory.
-
-
-The debug option will parse the config file, print out the command
-line equivalents of all commands and print out warnings of problems
-encountered in the file:
-
-  spipe -config t/data/string_manipulation.xml -d /tmp/test
-
-An other tool integrated in the system is visualization of the
-execution graph. It is done with the help of L<GraphViz> perl
-interface module that will need to be installed from CPAN.
-
-The following command line creates a Graphviz dot file, converts it
-into an image file and opens it with the Imagemagic display program:
-
-  spipe -config t/data/string_manipulation.xml -graph > \
-    /tmp/p.dot; dot -Tpng /tmp/p.dot | display
-
-=head1 CONFIGURATION
-
-The default configuration is written in YAML, a simple and human
-readable language that can be parsed in many languages cleanly into
-data structures.
-
-The YAML file contains four top level keys for the hash that the file
-will be read into: 1) C<name> to give the pipeline a short name, 2)
-C<version> to indicate the version number, 3) C<description> to give a
-more verbose explanation what the pipeline does, and 4) C<steps>
-listing pipeline steps.
-
-  ---
-  description: "Example of a pipeline"
-  name: String Manipulation
-  version: '0.4'
-  steps:
-
-Each C<step> is identified by an unique ID and has a C<name> that
-identifies an executable somewhere in the system path. Alternatively,
-you can give the full path leading to the executable file with key
-C<path>. The name will be added to the path and padded with a suitable
-separator character when  needed.
-
-Arguments to the executable are given individually as key/value pairs
-within the C<args> tag. A single hyphen is added in front of the
-argument key when they are executed. If two hyphens are needed, just
-add one the key. Arguments can exist without values, too.
-
-  s3:
-    name: cat
-    args:
-      in:
-        type: redir
-        value: s1.txt
-      n:
-      out:
-        type: redir
-        value: s3_mod.txt
-    next:
-      - s4
-
-There are two special keys C<in> and C<out> that need to have a key
- C<type> defined. The IO C<type> can get several kinds of values:
-
-=over
-
-=item  C<unnamed>
-
-that indicates that the argument is an unnamed argument to the
-executable
-
-=item  C<redir>
-
-will be interpreted as UNIX redirection character '&lt' or '&gt'
-depending on the context
-
-=item  C<file>
-
-means that IO happens from/to a file and is rendered as named argument
-
-=item  C<dir>
-
-is rendered like file, but is a mnemonic that all files under this
-directory name are processed
-
-=back
-
-Finally, the C<step> tag can contain the C<next> key that
-gives an array of IDs for the next steps in the execution. Typically,
-these steps depends on the previous step for input.
-
-Practices that are completely bonkers, like spaces in file names, are
-not supported.
-
-=head2 Advanced features
-
-The pipeline does not have to be linear; it can contain branches. For
-example, the pipeline can have several start points with different
-kinds of input: file and string.
-
-Sometimes it is useful to run the same pipeline with different
-parameter. The starting point of execution can take a value from the
-command line.  Leave the value for the given argument blank in the
-configuration file and give it from the command line. Matching of
-values is done by matching the type string.
-
-  spipe -conf input_demo.yml --input=ABC --itype=str
-
-  ---
-  description: "Demonstrate input from command line"
-  name: input.yml
-  version: '0.1'
-  steps:
-    s1:
-      name: echo
-      args:
-        in:
-          type: unnamed
-          value:
-        out:
-          type: redir
-          value: s1_string.txt
-
-The empty C<value> will be filled in from the command line into the
-C<config.yml> stored in the project directory. Also, the config file
-looks slightly different since the steps are written out as
-App::Pipeline::Simple objects. Functionally there is no difference.
-
 
 =method new
 
-Constructor
+Constructor for the class. One instance represents the whole pipeline,
+and other instances are created for each step in the pipeline.
 
 =method verbose
 
