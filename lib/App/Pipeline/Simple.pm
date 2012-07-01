@@ -726,6 +726,11 @@ Analyze the configuration without executing it.
 
 Create a GraphViz dot file from the config.
 
+
+=head1 SEE ALSO
+
+L<spipe>
+
 =cut
 
 

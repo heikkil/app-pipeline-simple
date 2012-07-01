@@ -299,6 +299,19 @@ C<config.yml> stored in the project directory. Also, the config file
 looks slightly different since the steps are written out as
 App::Pipeline::Simple objects. Functionally there is no difference.
 
+=head1 TO DO
+
+This pipeline engine has been tested using mostly linear pipelines.
+Extensive branching and complex dependencies might not work as expected.
+
+There are no explicit tests for the existence of step input
+files. Scripts are expected to run these steps themselves and die
+gracefully when appropriate.
+
+There has been no attempt to execute steps in parallel fashion.
+
+If all this is included, this pipeline engine might not be "simple"
+any more.
 
 =head1 SEE ALSO
 
