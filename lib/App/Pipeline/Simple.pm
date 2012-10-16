@@ -624,8 +624,8 @@ improvements:
 
 A pipeline is a collection of steps that are functionally equivalent
 to a pipeline. In other words, execution of a pipeline equals to
-execution of a each ordered step within the pipeline. From that derives
-that the pipeline object model needs only one object that can
+execution of a each ordered step within the pipeline. From that
+derives that the pipeline object model needs only one class that can
 recursively represent the whole pipeline as well as individual steps.
 
 
