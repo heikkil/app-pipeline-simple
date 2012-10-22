@@ -265,6 +265,28 @@ these steps depend on the previous step for input.
 Practices that are completely bonkers, like spaces in file names, are
 not supported.
 
+Finally, it is worth noting that YAML can need escaping and quoting to
+get special characters inside strings. Double quotes around a string
+works most of the time well. A single quote inside a single quoted
+string needs to be doubled.
+
+The following example of a perl one-liner (Thanks to Nic Walker for
+alerting me) could be equally well written using double quotes like
+this: "'print $F[1]'"
+
+  s6:
+    name: perl
+    args:
+      lane: '''print $F[1]'''
+      in:
+        type: redir
+        value: myfile
+      out:
+        type: redir
+        value: sec_column
+
+
+
 =head2 Advanced features
 
 The pipeline does not have to be linear; it can contain branches. For
